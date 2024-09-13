@@ -27,13 +27,13 @@ def get_data(tickers, period='1d', value_metric='Capitalización'):
         hist = stock.history(period='1y')  # Obtener datos del último año
         if len(hist) > 1:
             # Determinar el periodo para el cálculo del rendimiento
-            if period == '1d':
+            if period == 'diario':
                 period_data = hist.tail(2)
-            elif period == '1wk':
+            elif period == 'semanal':
                 period_data = hist.resample('W').last().tail(2)
-            elif period == '1mo':
+            elif period == 'mensual':
                 period_data = hist.resample('M').last().tail(2)
-            elif period == '1y':
+            elif period == 'anual':
                 period_data = hist.resample('A').last().tail(2)
             else:
                 raise ValueError("Periodo no soportado")
@@ -53,7 +53,7 @@ def get_data(tickers, period='1d', value_metric='Capitalización'):
                 capi = last_volume * last_close
 
                 # Determinar el valor a mostrar según la métrica seleccionada
-                value = capi if value_metric == 'Capitalización' else last_volume
+                value = capi if value_metric == 'Volumen x precio' else last_volume
 
                 data.append({
                     'Ticker': ticker,
@@ -87,19 +87,19 @@ def main():
     # Selección del panel
     panel = st.selectbox(
         "Selecciona el panel:",
-        ['Panel General', 'Panel Líder']
+        ['Panel General', 'Panel Líder', 'Todos']
     )
 
     # Selección del período
     period = st.selectbox(
         "Selecciona el período de rendimiento:",
-        ['1d', '1wk', '1mo', '1y']
+        ['diario', 'semanal', 'mensual', 'anual']
     )
 
     # Selección de la métrica
     value_metric = st.selectbox(
         "Selecciona la métrica para el valor en el gráfico:",
-        ['Capitalización', 'Volumen']
+        ['Volumen x precio', 'Volumen']
     )
 
     # Selección del rango de colores
