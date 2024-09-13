@@ -3,8 +3,8 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-# Definición de tickers
-tickers_panel_general = [
+# Listas de tickers
+tickers_panel_general = [ 
     'ALUA.BA', 'BBAR.BA', 'BMA.BA', 'BYMA.BA', 'CEPU.BA', 'COME.BA',
     'CRES.BA', 'CVH.BA', 'EDN.BA', 'GGAL.BA', 'HARG.BA', 'LOMA.BA',
     'MIRG.BA', 'PAMP.BA', 'SUPV.BA', 'TECO2.BA', 'TGNO4.BA', 'TGSU2.BA',
@@ -25,119 +25,82 @@ tickers_panel_lider = [
 ]
 
 # Función para obtener datos
-def get_data(tickers, period):
+def get_last_data(tickers, period='5d'):
     data = []
     for ticker in tickers:
-        try:
-            stock = yf.Ticker(ticker)
-            hist = stock.history(period='1y')  # Obtener datos de un año para cálculos
+        stock = yf.Ticker(ticker)
+        hist = stock.history(period=period)
+        if len(hist) >= 2:
+            last_close = hist['Close'].iloc[-1]
+            last_volume = hist['Volume'].iloc[-1]
+            previous_close = hist['Close'].iloc[-2]
+            daily_return = (last_close - previous_close) / previous_close * 100
 
-            if period == '1d':
-                # Para el día actual, usa el último cierre disponible
-                hist = hist.tail(2)  # Usa las últimas dos fechas para calcular el rendimiento diario
+            data.append({
+                'Ticker': ticker,
+                'Volumen': last_volume,
+                'Rendimiento Diario': daily_return
+            })
+        else:
+            data.append({
+                'Ticker': ticker,
+                'Volumen': None,
+                'Rendimiento Diario': None
+            })
+    return pd.DataFrame(data)
 
-            if len(hist) >= 2:
-                last_close = hist['Close'].iloc[-1]
-                last_volume = hist['Volume'].iloc[-1]
-                previous_close = hist['Close'].iloc[-2]
-                daily_return = (last_close - previous_close) / previous_close * 100
+# Streamlit UI
+st.title('Análisis Financiero')
+option = st.selectbox('Seleccione el panel', ['Panel General', 'Panel Líder', 'Todos'])
 
-                data.append({
-                    'Ticker': ticker,
-                    'Volumen': last_volume,
-                    'Volumen por Precio': last_volume * last_close,
-                    'Rendimiento': round(daily_return, 2)
-                })
-            else:
-                print(f"No hay suficientes datos para el ticker: {ticker}")
-
-        except Exception as e:
-            print(f"Error al obtener datos para el ticker {ticker}: {e}")
-
-    if data:
-        return pd.DataFrame(data)
-    else:
-        return pd.DataFrame()
-
-# Crear la aplicación en Streamlit
-st.title('Análisis de Tickers - Panel Líder y General')
-
-# Selección de panel
-panel = st.selectbox(
-    "Seleccione el panel de tickers:",
-    ['Panel General', 'Panel Líder', 'Todos los Tickers']
-)
-
-if panel == 'Panel General':
+if option == 'Panel General':
     tickers = tickers_panel_general
-elif panel == 'Panel Líder':
+elif option == 'Panel Líder':
     tickers = tickers_panel_lider
 else:
     tickers = tickers_panel_general + tickers_panel_lider
 
-# Selección de tipo de visualización
-visualizacion = st.radio(
-    "Seleccione el tipo de datos para visualizar:",
-    ['Volumen', 'Volumen por Precio']
-)
+value_option = st.selectbox('Seleccione el tipo de valor', ['Volumen', 'Volumen por Precio'])
+performance_option = st.selectbox('Seleccione el tipo de rendimiento', ['Diario', 'Semanal', 'Mensual', 'Anual'])
 
-# Selección del periodo de rendimiento
-periodo = st.selectbox(
-    "Seleccione el periodo para calcular el rendimiento:",
-    ['1d', '5d', '1mo', '1y'],
-    format_func=lambda p: {'1d': 'Diario', '5d': 'Semanal', '1mo': 'Mensual', '1y': 'Anual'}[p]
-)
-
-# Selección de la escala de colores para rendimiento
-escala_rendimiento = st.selectbox(
-    "Seleccione el rango de escala de colores para el rendimiento:",
-    ['-10% a +10%', '-6% a +6%', '-3% a +3%', '-1% a +1%']
-)
-
-# Obtener el rango seleccionado
-rangos = {
-    '-10% a +10%': [-10, 10],
-    '-6% a +6%': [-6, 6],
-    '-3% a +3%': [-3, 3],
-    '-1% a +1%': [-1, 1]
-}
-rango_color = rangos[escala_rendimiento]
-
-# Obtener los datos
-resultados = get_data(tickers, periodo)
-
-if resultados.empty:
-    st.error("No se encontraron datos para los tickers seleccionados.")
-    st.write("Verifica los tickers y el periodo seleccionado.")
+# Obtener datos
+if performance_option == 'Diario':
+    period = '5d'
+elif performance_option == 'Semanal':
+    period = '1wk'
+elif performance_option == 'Mensual':
+    period = '1mo'
 else:
-    st.write("DataFrame Resultante:")
-    st.write(resultados)  # Para ver las columnas y valores del DataFrame
+    period = '1y'
 
-    if visualizacion == 'Volumen':
-        valor = 'Volumen'
-    else:
-        valor = 'Volumen por Precio'
+resultados = get_last_data(tickers, period)
 
-    if valor in resultados.columns:
-        fig = px.treemap(resultados,
-                         path=['Ticker'],
-                         values=valor,
-                         color='Rendimiento',
-                         hover_data={'Rendimiento': True},
-                         color_continuous_scale=px.colors.sequential.Viridis,
-                         color_continuous_midpoint=0,
-                         range_color=rango_color,
-                         title=f"Panel {panel}: {valor} y Rendimiento {periodo}"
-        )
+# Procesar datos según el valor seleccionado
+if value_option == 'Volumen':
+    resultados['Valor'] = resultados['Volumen']
+else:
+    resultados['Valor'] = resultados['Volumen'] * (resultados['Rendimiento Diario'] / 100 + 1)
 
-        fig.update_traces(
-            textinfo='label+text+value',
-            texttemplate='<b>%{label}</b><br><b>%{customdata[0]:.2f}%</b>',
-            customdata=resultados[['Rendimiento']]
-        )
+# Crear el gráfico de treemap
+fig = px.treemap(resultados,
+                 path=['Ticker'],
+                 values='Valor',
+                 color='Rendimiento Diario',
+                 color_continuous_scale=px.colors.sequential.RdYlGn,
+                 color_continuous_midpoint=0,
+                 range_color=[-10, 10],
+                 title="Panel General: Valor y Rendimiento Diario")
 
-        st.plotly_chart(fig)
-    else:
-        st.error(f"La columna '{valor}' no existe en los datos.")
+# Añadir la columna 'Rendimiento Diario' a customdata
+fig.update_traces(customdata=resultados[['Rendimiento Diario']],
+                  texttemplate="<b>%{label}</b><br><b>%{customdata[0]:.2f}%</b>",
+                  textinfo="label+text")
 
-    st.dataframe(resultados)
+# Ajustar el tamaño del gráfico
+fig.update_layout(width=2000, height=800)
+
+# Mostrar el gráfico en Streamlit
+st.plotly_chart(fig)
+
+# Mostrar el DataFrame
+st.write(resultados)
