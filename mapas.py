@@ -30,12 +30,16 @@ def get_data(tickers, period):
     for ticker in tickers:
         try:
             stock = yf.Ticker(ticker)
-            hist = stock.history(period=period)
+            hist = stock.history(period='1y')  # Obtener datos de un año para cálculos
+
+            if period == '1d':
+                # Para el día actual, usa el último cierre disponible
+                hist = hist.tail(2)  # Usa las últimas dos fechas para calcular el rendimiento diario
 
             if len(hist) >= 2:
                 last_close = hist['Close'].iloc[-1]
                 last_volume = hist['Volume'].iloc[-1]
-                previous_close = hist['Close'].iloc[-2] if len(hist) > 1 else hist['Close'].iloc[0]
+                previous_close = hist['Close'].iloc[-2]
                 daily_return = (last_close - previous_close) / previous_close * 100
 
                 data.append({
