@@ -120,9 +120,13 @@ else:
                          color_continuous_scale=[(0, 'red'), (0.5, 'white'), (1, 'green')],
                          color_continuous_midpoint=0,
                          range_color=rango_color,  # Usar el rango de color seleccionado
-                         title=f"Panel {panel}: {valor} y Rendimiento {periodo}",
-                         text='Rendimiento'  # Mostrar las etiquetas de rendimiento directamente en el gráfico
+                         title=f"Panel {panel}: {valor} y Rendimiento {periodo}"
         )
+
+        # Ajustar etiquetas de rendimiento en el gráfico
+        fig.update_traces(textinfo='label+text',  # Mostrar nombre del ticker y rendimiento
+                          text=resultados['Rendimiento'].astype(str) + '%',  # Etiquetas personalizadas
+                          texttemplate='<b>%{text}</b>')  # Formato de texto
 
         # Mostrar el gráfico en la app
         st.plotly_chart(fig)
@@ -131,4 +135,5 @@ else:
 
     # Mostrar el DataFrame resultante para depuración
     st.dataframe(resultados)
+
 
