@@ -86,7 +86,7 @@ fig = px.treemap(resultados,
                  path=['Ticker'],
                  values='Valor',
                  color='Rendimiento Diario',
-                 color_continuous_scale=px.colors.sequential.RdYlGn,
+                 color_continuous_scale=px.colors.sequential.Viridis,
                  color_continuous_midpoint=0,
                  range_color=[-10, 10],
                  title="Panel General: Valor y Rendimiento Diario")
@@ -102,5 +102,5 @@ fig.update_layout(width=2000, height=800)
 # Mostrar el gráfico en Streamlit
 st.plotly_chart(fig)
 
-# Mostrar el DataFrame
+# Mostrar el DataFrame al final
 st.write(resultados)
