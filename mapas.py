@@ -117,7 +117,7 @@ else:
                          values=valor,  # Asegúrate de que esta columna existe
                          color='Rendimiento',
                          hover_data={'Rendimiento': True},  # Mostrar rendimiento en el hover
-                         color_continuous_scale=px.colors.sequential.RdYlGn,
+                         color_continuous_scale=px.colors.sequential.Viridis,  # Usar una escala de colores alternativa
                          color_continuous_midpoint=0,
                          range_color=rango_color,  # Usar el rango de color seleccionado
                          title=f"Panel {panel}: {valor} y Rendimiento {periodo}"
