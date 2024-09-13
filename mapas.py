@@ -125,8 +125,9 @@ else:
 
         # Ajustar etiquetas de rendimiento en el gráfico
         fig.update_traces(textinfo='label+text',  # Mostrar nombre del ticker y rendimiento
-                          text=resultados['Rendimiento'].astype(str) + '%',  # Etiquetas personalizadas
-                          texttemplate='<b>%{text}</b>')  # Formato de texto
+                          texttemplate='<b>%{label}</b><br><b>%{customdata[0]}%</b>',  # Mostrar ticker y rendimiento
+                          customdata=resultados[['Rendimiento']]  # Añadir la columna de rendimiento a customdata
+        )
 
         # Mostrar el gráfico en la app
         st.plotly_chart(fig)
@@ -135,5 +136,6 @@ else:
 
     # Mostrar el DataFrame resultante para depuración
     st.dataframe(resultados)
+
 
 
