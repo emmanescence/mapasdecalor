@@ -76,6 +76,9 @@ periodo = st.selectbox(
 # Obtener los datos
 resultados = get_data(tickers, periodo)
 
+# Mostrar los resultados para inspeccionar las columnas y sus valores
+st.write(resultados)  # Verifica que las columnas existen y tienen los valores correctos
+
 # Definir el campo de valores a visualizar
 if visualizacion == 'Volumen':
     valor = 'Volumen'
@@ -85,7 +88,7 @@ else:
 # Crear el gráfico de treemap
 fig = px.treemap(resultados,
                  path=['Ticker'],
-                 values=valor,
+                 values=valor,  # Asegúrate de que esta columna existe
                  color='Rendimiento',
                  color_continuous_scale=[(0, 'red'), (0.5, 'white'), (1, 'green')],
                  color_continuous_midpoint=0,
@@ -98,4 +101,3 @@ st.plotly_chart(fig)
 
 # Mostrar el DataFrame resultante
 st.dataframe(resultados)
-
