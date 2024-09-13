@@ -25,6 +25,7 @@ def get_data(tickers, period):
     for ticker in tickers:
         stock = yf.Ticker(ticker)
         hist = stock.history(period=period)  # Obtener datos según el periodo seleccionado
+        
         if len(hist) >= 2:
             # Último día de cierre y volumen
             last_close = hist['Close'].iloc[-1]
@@ -42,7 +43,11 @@ def get_data(tickers, period):
                 'Volumen por Precio': last_volume * last_close,  # Volumen por precio
                 'Rendimiento': round(daily_return, 2)  # Redondeo a 2 decimales
             })
-    return pd.DataFrame(data)
+    # Retornar el DataFrame solo si contiene datos
+    if data:
+        return pd.DataFrame(data)
+    else:
+        return pd.DataFrame()  # Si no hay datos, retornar un DataFrame vacío
 
 # Crear la aplicación en Streamlit
 st.title('Análisis de Tickers - Panel Líder y General')
@@ -76,28 +81,37 @@ periodo = st.selectbox(
 # Obtener los datos
 resultados = get_data(tickers, periodo)
 
-# Mostrar los resultados para inspeccionar las columnas y sus valores
-st.write(resultados)  # Verifica que las columnas existen y tienen los valores correctos
-
-# Definir el campo de valores a visualizar
-if visualizacion == 'Volumen':
-    valor = 'Volumen'
+# Comprobar si el DataFrame tiene datos antes de graficar
+if resultados.empty:
+    st.error("No se encontraron datos para los tickers seleccionados.")
 else:
-    valor = 'Volumen por Precio'
+    st.write("DataFrame Resultante:")
+    st.write(resultados)  # Para ver las columnas y valores del DataFrame
 
-# Crear el gráfico de treemap
-fig = px.treemap(resultados,
-                 path=['Ticker'],
-                 values=valor,  # Asegúrate de que esta columna existe
-                 color='Rendimiento',
-                 color_continuous_scale=[(0, 'red'), (0.5, 'white'), (1, 'green')],
-                 color_continuous_midpoint=0,
-                 range_color=[-3, 3],
-                 title=f"Panel {panel}: {valor} y Rendimiento {periodo}"
-)
+    # Definir el campo de valores a visualizar
+    if visualizacion == 'Volumen':
+        valor = 'Volumen'
+    else:
+        valor = 'Volumen por Precio'
 
-# Mostrar el gráfico en la app
-st.plotly_chart(fig)
+    # Asegurarse de que el valor exista como columna en el DataFrame
+    if valor in resultados.columns:
+        # Crear el gráfico de treemap
+        fig = px.treemap(resultados,
+                         path=['Ticker'],
+                         values=valor,  # Asegúrate de que esta columna existe
+                         color='Rendimiento',
+                         color_continuous_scale=[(0, 'red'), (0.5, 'white'), (1, 'green')],
+                         color_continuous_midpoint=0,
+                         range_color=[-3, 3],
+                         title=f"Panel {panel}: {valor} y Rendimiento {periodo}"
+        )
 
-# Mostrar el DataFrame resultante
-st.dataframe(resultados)
+        # Mostrar el gráfico en la app
+        st.plotly_chart(fig)
+    else:
+        st.error(f"La columna '{valor}' no existe en los datos.")
+
+    # Mostrar el DataFrame resultante para depuración
+    st.dataframe(resultados)
+
