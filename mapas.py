@@ -79,7 +79,7 @@ def main():
     # Selección del periodo
     period = st.selectbox(
         "Selecciona el período de rendimiento:",
-        ['diario, '1wk', '1mo', '1y']
+        ['1d, '1wk', '1mo', '1y']
     )
 
     # Selección de la métrica
