@@ -87,7 +87,7 @@ def main():
     # Selección del panel
     panel = st.selectbox(
         "Selecciona el panel:",
-        ['Panel General', 'Panel Líder', 'Todos']
+        ['Panel General', 'Panel Líder']
     )
 
     # Selección del período
