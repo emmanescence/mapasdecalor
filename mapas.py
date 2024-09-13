@@ -78,6 +78,21 @@ periodo = st.selectbox(
     format_func=lambda p: {'1d': 'Diario', '5d': 'Semanal', '1mo': 'Mensual', '1y': 'Anual'}[p]
 )
 
+# Selección de la escala de colores para rendimiento
+escala_rendimiento = st.selectbox(
+    "Seleccione el rango de escala de colores para el rendimiento:",
+    ['-10% a +10%', '-6% a +6%', '-3% a +3%', '-1% a +1%']
+)
+
+# Obtener el rango seleccionado
+rangos = {
+    '-10% a +10%': [-10, 10],
+    '-6% a +6%': [-6, 6],
+    '-3% a +3%': [-3, 3],
+    '-1% a +1%': [-1, 1]
+}
+rango_color = rangos[escala_rendimiento]
+
 # Obtener los datos
 resultados = get_data(tickers, periodo)
 
@@ -96,15 +111,17 @@ else:
 
     # Asegurarse de que el valor exista como columna en el DataFrame
     if valor in resultados.columns:
-        # Crear el gráfico de treemap
+        # Crear el gráfico de treemap con etiquetas de rendimiento
         fig = px.treemap(resultados,
                          path=['Ticker'],
                          values=valor,  # Asegúrate de que esta columna existe
                          color='Rendimiento',
+                         hover_data={'Rendimiento': True},  # Mostrar rendimiento en el hover
                          color_continuous_scale=[(0, 'red'), (0.5, 'white'), (1, 'green')],
                          color_continuous_midpoint=0,
-                         range_color=[-3, 3],
-                         title=f"Panel {panel}: {valor} y Rendimiento {periodo}"
+                         range_color=rango_color,  # Usar el rango de color seleccionado
+                         title=f"Panel {panel}: {valor} y Rendimiento {periodo}",
+                         text_auto=True  # Mostrar las etiquetas de rendimiento directamente en el gráfico
         )
 
         # Mostrar el gráfico en la app
