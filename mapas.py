@@ -88,6 +88,22 @@ def main():
         ['Capitalización', 'Volumen']
     )
 
+    # Selección del rango de colores
+    color_range = st.selectbox(
+        "Selecciona el rango de colores para el rendimiento:",
+        ['-10 a 10', '-5 a 5', '-3 a 3', '-1 a 1']
+    )
+
+    # Mapeo de los rangos de colores a valores
+    color_ranges = {
+        '-10 a 10': [-10, 10],
+        '-5 a 5': [-5, 5],
+        '-3 a 3': [-3, 3],
+        '-1 a 1': [-1, 1]
+    }
+    
+    selected_range = color_ranges[color_range]
+
     # Obtener datos
     resultados = get_data(tickers_panel_lider, period, value_metric)
 
@@ -98,7 +114,7 @@ def main():
                      color='Rendimiento',
                      color_continuous_scale=[(0, 'red'), (0.5, 'white'), (1, 'darkgreen')],
                      color_continuous_midpoint=0,  # Punto medio de la escala en 0%
-                     range_color=[-10, 10],  # Ajusta según el rango de rendimiento esperado
+                     range_color=selected_range,  # Rango de colores según selección
                      title=f"Panel general: {value_metric} y Rendimiento ({period})")
 
     # Ajustar el tamaño del gráfico
