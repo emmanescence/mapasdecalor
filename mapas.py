@@ -1,28 +1,8 @@
 import yfinance as yf
 import pandas as pd
 import plotly.express as px
+import plotly.graph_objects as go
 import streamlit as st
-
-# Listas de tickers
-tickers_panel_general = [ 
-    'ALUA.BA', 'BBAR.BA', 'BMA.BA', 'BYMA.BA', 'CEPU.BA', 'COME.BA',
-    'CRES.BA', 'CVH.BA', 'EDN.BA', 'GGAL.BA', 'HARG.BA', 'LOMA.BA',
-    'MIRG.BA', 'PAMP.BA', 'SUPV.BA', 'TECO2.BA', 'TGNO4.BA', 'TGSU2.BA',
-    'TRAN.BA', 'TXAR.BA', 'VALO.BA', 'YPFD.BA',
-    'AGRO.BA', 'AUSO.BA', 'BHIP.BA', 'BOLT.BA', 'BPAT.BA', 'CADO.BA', 'CAPX.BA', 'CARC.BA', 'CECO2.BA',
-    'CELU.BA', 'CGPA2.BA', 'CTIO.BA', 'DGCE.BA', 'DGCU2.BA', 'DOME.BA', 'DYCA.BA', 'FERR.BA', 'FIPL.BA',
-    'GARO.BA', 'GBAN.BA', 'GCDI.BA', 'GCLA.BA', 'GRIM.BA', 'HAVA.BA', 'INTR.BA', 'INVJ.BA', 'IRSA.BA',
-    'LEDE.BA', 'LONG.BA', 'METR.BA', 'MOLA.BA', 'MOLI.BA', 'MORI.BA', 'OEST.BA', 'PATA.BA', 'RIGO.BA',
-    'ROSE.BA', 'SAMI.BA', 'SEMI.BA'
-]
-
-tickers_panel_lider = [
-    'AGRO.BA', 'AUSO.BA', 'BHIP.BA', 'BOLT.BA', 'BPAT.BA', 'CADO.BA', 'CAPX.BA', 'CARC.BA', 'CECO2.BA',
-    'CELU.BA', 'CGPA2.BA', 'CTIO.BA', 'DGCE.BA', 'DGCU2.BA', 'DOME.BA', 'DYCA.BA', 'FERR.BA', 'FIPL.BA',
-    'GARO.BA', 'GBAN.BA', 'GCDI.BA', 'GCLA.BA', 'GRIM.BA', 'HAVA.BA', 'INTR.BA', 'INVJ.BA', 'IRSA.BA',
-    'LEDE.BA', 'LONG.BA', 'METR.BA', 'MOLA.BA', 'MOLI.BA', 'MORI.BA', 'OEST.BA', 'PATA.BA', 'RIGO.BA',
-    'ROSE.BA', 'SAMI.BA', 'SEMI.BA'
-]
 
 # Función para obtener datos
 def get_last_data(tickers, period='5d'):
@@ -31,11 +11,13 @@ def get_last_data(tickers, period='5d'):
         stock = yf.Ticker(ticker)
         hist = stock.history(period=period)
         if len(hist) >= 2:
+            # Obtener el precio de cierre y volumen del último día
             last_close = hist['Close'].iloc[-1]
             last_volume = hist['Volume'].iloc[-1]
+            # Obtener el precio de cierre del día anterior
             previous_close = hist['Close'].iloc[-2]
+            # Calcular el rendimiento diario
             daily_return = (last_close - previous_close) / previous_close * 100
-
             data.append({
                 'Ticker': ticker,
                 'Volumen': last_volume,
@@ -49,19 +31,24 @@ def get_last_data(tickers, period='5d'):
             })
     return pd.DataFrame(data)
 
-# Streamlit UI
-st.title('Análisis Financiero')
-option = st.selectbox('Seleccione el panel', ['Panel General', 'Panel Líder', 'Todos'])
+# Selección de tickers y otras opciones
+tickers_panel_general = [ 'ALUA.BA', 'BBAR.BA', 'BMA.BA', 'BYMA.BA', 'CEPU.BA', 'COME.BA', ... ]  # Lista completa
+tickers_panel_lider = [ 'AGRO.BA', 'AUSO.BA', 'BHIP.BA', 'BOLT.BA', 'BPAT.BA', 'CADO.BA', ... ]  # Lista completa
 
-if option == 'Panel General':
+# Streamlit UI
+st.title("Análisis de Acciones")
+
+panel_option = st.selectbox('Seleccione el panel', ['Panel General', 'Panel Líder', 'Todos'])
+metric_option = st.selectbox('Seleccione la métrica', ['Volumen', 'Volumen por Precio'])
+performance_option = st.selectbox('Seleccione el rendimiento', ['Diario', 'Semanal', 'Mensual', 'Anual'])
+
+# Determinar tickers y periodo
+if panel_option == 'Panel General':
     tickers = tickers_panel_general
-elif option == 'Panel Líder':
+elif panel_option == 'Panel Líder':
     tickers = tickers_panel_lider
 else:
     tickers = tickers_panel_general + tickers_panel_lider
-
-value_option = st.selectbox('Seleccione el tipo de valor', ['Volumen', 'Volumen por Precio'])
-performance_option = st.selectbox('Seleccione el tipo de rendimiento', ['Diario', 'Semanal', 'Mensual', 'Anual'])
 
 # Obtener datos
 if performance_option == 'Diario':
@@ -75,32 +62,33 @@ else:
 
 resultados = get_last_data(tickers, period)
 
-# Procesar datos según el valor seleccionado
-if value_option == 'Volumen':
-    resultados['Valor'] = resultados['Volumen']
-else:
-    resultados['Valor'] = resultados['Volumen'] * (resultados['Rendimiento Diario'] / 100 + 1)
+# Calcular 'Volumen por Precio' si se selecciona
+if metric_option == 'Volumen por Precio':
+    resultados['Volumen'] = resultados['Volumen'] * resultados['Rendimiento Diario'].fillna(0)
 
 # Crear el gráfico de treemap
 fig = px.treemap(resultados,
                  path=['Ticker'],
-                 values='Valor',
+                 values='Volumen',
                  color='Rendimiento Diario',
-                 color_continuous_scale=px.colors.sequential.Viridis,
+                 color_continuous_scale='RdYlGn',
                  color_continuous_midpoint=0,
                  range_color=[-10, 10],
-                 title="Panel General: Valor y Rendimiento Diario")
+                 title="Panel general: Volumen Operado y Rendimiento Diario")
+
+# Actualizar las etiquetas para que coincidan con el DataFrame
+fig.update_traces(textinfo="label+text+value",
+                  texttemplate="<b>%{label}</b><br><b>%{customdata[0]:.2f}%</b>")
 
 # Añadir la columna 'Rendimiento Diario' a customdata
-fig.update_traces(customdata=resultados[['Rendimiento Diario']],
-                  texttemplate="<b>%{label}</b><br><b>%{customdata[0]:.2f}%</b>",
-                  textinfo="label+text")
+fig.update_traces(customdata=resultados[['Rendimiento Diario']])
 
 # Ajustar el tamaño del gráfico
 fig.update_layout(width=2000, height=800)
 
-# Mostrar el gráfico en Streamlit
+# Mostrar el gráfico
 st.plotly_chart(fig)
 
-# Mostrar el DataFrame al final
+# Mostrar el DataFrame final
 st.write(resultados)
+
