@@ -30,6 +30,15 @@ def get_last_data(tickers, period='5d'):
             })
     return pd.DataFrame(data)
 
+# Función para depurar los datos
+def debug_data(df):
+    st.write("DataFrame:")
+    st.write(df.head())
+    st.write("DataFrame Info:")
+    st.write(df.info())
+    st.write("Valores Nulos:")
+    st.write(df.isnull().sum())
+
 # Selección de tickers y otras opciones
 tickers_panel_general = [
     'ALUA.BA', 'BBAR.BA', 'BMA.BA', 'BYMA.BA', 'CEPU.BA', 'COME.BA',
@@ -75,6 +84,9 @@ else:
 
 resultados = get_last_data(tickers, period)
 
+# Verificar si hay datos faltantes
+debug_data(resultados)
+
 # Calcular 'Volumen por Precio' si se selecciona
 if metric_option == 'Volumen por Precio':
     resultados['Volumen'] = resultados['Volumen'] * resultados['Rendimiento Diario'].fillna(0)
@@ -104,5 +116,4 @@ st.plotly_chart(fig)
 
 # Mostrar el DataFrame final
 st.write(resultados)
-
 
