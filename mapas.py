@@ -1,10 +1,7 @@
+import streamlit as st
 import yfinance as yf
 import pandas as pd
 import plotly.express as px
-import streamlit as st
-
-# Título de la aplicación en Streamlit
-st.title("Panel General: Volumen Operado y Rendimiento Diario")
 
 # Lista de tickers
 tickers_panel_lider = [
@@ -15,54 +12,108 @@ tickers_panel_lider = [
 ]
 
 # Función para obtener datos
-def get_last_data(tickers):
+def get_data(tickers, period='1d', value_metric='Capitalización'):
     data = []
     for ticker in tickers:
         stock = yf.Ticker(ticker)
-        hist = stock.history(period='5d')  # Obtener datos de los últimos 5 días
-        if len(hist) >= 2:
-            # Obtener el precio de cierre y volumen del último día
-            last_close = hist['Close'].iloc[-1]
-            last_volume = hist['Volume'].iloc[-1]
+        hist = stock.history(period='1y')  # Obtener datos del último año
+        if len(hist) > 1:
+            # Determinar el periodo para el cálculo del rendimiento
+            if period == '1d':
+                period_data = hist.tail(2)
+            elif period == '1wk':
+                period_data = hist.resample('W').last().tail(2)
+            elif period == '1mo':
+                period_data = hist.resample('M').last().tail(2)
+            elif period == '1y':
+                period_data = hist.resample('A').last().tail(2)
+            else:
+                raise ValueError("Periodo no soportado")
 
-            # Obtener el precio de cierre del día anterior
-            previous_close = hist['Close'].iloc[-2]
+            if len(period_data) >= 2:
+                # Obtener precios de cierre
+                last_close = period_data['Close'].iloc[-1]
+                previous_close = period_data['Close'].iloc[-2]
 
-            # Calcular el rendimiento diario
-            daily_return = (last_close - previous_close) / previous_close * 100
+                # Calcular el rendimiento
+                performance = (last_close - previous_close) / previous_close * 100
 
-            data.append({
-                'Ticker': ticker,
-                'Volumen': last_volume,
-                'Rendimiento Diario': daily_return
-            })
+                # Obtener el volumen
+                last_volume = period_data['Volume'].iloc[-1]
+
+                # Calcular la capitalización
+                capi = last_volume * last_close
+
+                # Determinar el valor a mostrar según la métrica seleccionada
+                value = capi if value_metric == 'Capitalización' else last_volume
+
+                data.append({
+                    'Ticker': ticker,
+                    'Volumen': last_volume,
+                    'Rendimiento': performance,
+                    'Capitalización': capi,
+                    'Value': value
+                })
+            else:
+                data.append({
+                    'Ticker': ticker,
+                    'Volumen': None,
+                    'Rendimiento': None,
+                    'Capitalización': None,
+                    'Value': None
+                })
         else:
             data.append({
                 'Ticker': ticker,
                 'Volumen': None,
-                'Rendimiento Diario': None
+                'Rendimiento': None,
+                'Capitalización': None,
+                'Value': None
             })
     return pd.DataFrame(data)
 
-# Obtener datos
-resultados = get_last_data(tickers_panel_lider)
+# Aplicación Streamlit
+def main():
+    st.title("Análisis Financiero con Streamlit")
 
-# Crear el gráfico de treemap con etiquetas personalizadas y escala de colores ajustada
-fig = px.treemap(resultados,
-                 path=['Ticker'],
-                 values='Volumen',
-                 color='Rendimiento Diario',
-                 color_continuous_scale=[(0, 'red'), (0.5, 'white'), (1, 'darkgreen')],
-                 color_continuous_midpoint=0,  # Punto medio de la escala en 0%
-                 range_color=[-3, 3],  # Rango de colores desde -3% a +3%
-                 title="Panel general: Volumen Operado y Rendimiento Diario")
+    # Selección del periodo
+    period = st.selectbox(
+        "Selecciona el período de rendimiento:",
+        ['1d', '1wk', '1mo', '1y']
+    )
 
-# Personalizar la información en las etiquetas con negrita
-fig.update_traces(textinfo="label+text+value",
-                  texttemplate="<b>%{label}</b><br><b>%{customdata[0]:.2f}%</b>")
+    # Selección de la métrica
+    value_metric = st.selectbox(
+        "Selecciona la métrica para el valor en el gráfico:",
+        ['Capitalización', 'Volumen']
+    )
 
-# Añadir la columna 'Rendimiento Diario' a customdata
-fig.update_traces(customdata=resultados[['Rendimiento Diario']])
+    # Obtener datos
+    resultados = get_data(tickers_panel_lider, period, value_metric)
 
-# Mostrar el gráfico en Streamlit
-st.plotly_chart(fig)
+    # Crear el gráfico de treemap con etiquetas personalizadas y escala de colores ajustada
+    fig = px.treemap(resultados,
+                     path=['Ticker'],
+                     values='Value',
+                     color='Rendimiento',
+                     color_continuous_scale=[(0, 'red'), (0.5, 'white'), (1, 'darkgreen')],
+                     color_continuous_midpoint=0,  # Punto medio de la escala en 0%
+                     range_color=[-10, 10],  # Ajusta según el rango de rendimiento esperado
+                     title=f"Panel general: {value_metric} y Rendimiento ({period})")
+
+    # Ajustar el tamaño del gráfico
+    fig.update_layout(width=1500, height=800)  # Puedes ajustar estos valores según sea necesario
+
+    # Personalizar la información en las etiquetas con negrita
+    fig.update_traces(textinfo="label+text+value",
+                      texttemplate="<b>%{label}</b><br><b>%{customdata[0]:.2f}%</b>")
+
+    # Añadir la columna 'Rendimiento' a customdata
+    fig.update_traces(customdata=resultados[['Rendimiento']])
+
+    # Mostrar el gráfico
+    st.plotly_chart(fig)
+
+if __name__ == "__main__":
+    main()
+
