@@ -117,18 +117,16 @@ else:
                          values=valor,  # Asegúrate de que esta columna existe
                          color='Rendimiento',
                          hover_data={'Rendimiento': True},  # Mostrar rendimiento en el hover
-                         color_continuous_scale=px.colors.sequential.Viridis,  # Usar una escala de colores alternativa
+                         color_continuous_scale=[(0, 'red'), (0.5, 'white'), (1, 'green')],
                          color_continuous_midpoint=0,
                          range_color=rango_color,  # Usar el rango de color seleccionado
                          title=f"Panel {panel}: {valor} y Rendimiento {periodo}"
         )
 
         # Ajustar etiquetas de rendimiento en el gráfico
-        fig.update_traces(
-            textinfo='label+value+text',  # Mostrar nombre del ticker, el valor del campo seleccionado y el rendimiento
-            texttemplate='<b>%{label}</b><br><b>%{customdata[0]:.2f}%</b>',  # Mostrar ticker y rendimiento
-            customdata=resultados[['Rendimiento']]  # Añadir la columna de rendimiento para las etiquetas
-        )
+        fig.update_traces(textinfo='label+text',  # Mostrar nombre del ticker y rendimiento
+                          text=resultados['Rendimiento'].astype(str) + '%',  # Etiquetas personalizadas
+                          texttemplate='<b>%{text}</b>')  # Formato de texto
 
         # Mostrar el gráfico en la app
         st.plotly_chart(fig)
@@ -137,5 +135,3 @@ else:
 
     # Mostrar el DataFrame resultante para depuración
     st.dataframe(resultados)
-
-
