@@ -126,8 +126,8 @@ else:
         # Ajustar etiquetas de rendimiento en el gráfico
         fig.update_traces(
             textinfo='label+value+text',  # Mostrar nombre del ticker, el valor del campo seleccionado y el rendimiento
-            texttemplate='<b>%{label}</b><br><b>%{text:.2f}%</b>',  # Mostrar ticker y rendimiento
-            text= result_data['Rendimiento']  # Añadir la columna de rendimiento para las etiquetas
+            texttemplate='<b>%{label}</b><br><b>%{customdata[0]:.2f}%</b>',  # Mostrar ticker y rendimiento
+            customdata=resultados[['Rendimiento']]  # Añadir la columna de rendimiento para las etiquetas
         )
 
         # Mostrar el gráfico en la app
