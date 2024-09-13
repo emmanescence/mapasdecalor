@@ -121,7 +121,7 @@ else:
                          color_continuous_midpoint=0,
                          range_color=rango_color,  # Usar el rango de color seleccionado
                          title=f"Panel {panel}: {valor} y Rendimiento {periodo}",
-                         text_auto=True  # Mostrar las etiquetas de rendimiento directamente en el gráfico
+                         text='Rendimiento'  # Mostrar las etiquetas de rendimiento directamente en el gráfico
         )
 
         # Mostrar el gráfico en la app
