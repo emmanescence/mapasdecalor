@@ -124,9 +124,10 @@ else:
         )
 
         # Ajustar etiquetas de rendimiento en el gráfico
-        fig.update_traces(textinfo='label+text',  # Mostrar nombre del ticker y rendimiento
-                          texttemplate='<b>%{label}</b><br><b>%{customdata[0]}%</b>',  # Mostrar ticker y rendimiento
-                          customdata=resultados[['Rendimiento']]  # Añadir la columna de rendimiento a customdata
+        fig.update_traces(
+            textinfo='label+value',  # Mostrar nombre del ticker y el valor del campo seleccionado
+            texttemplate='<b>%{label}</b><br><b>%{customdata[0]:.2f}%</b>',  # Mostrar ticker y rendimiento
+            customdata=resultados[['Rendimiento']]  # Añadir la columna de rendimiento a customdata
         )
 
         # Mostrar el gráfico en la app
@@ -136,6 +137,5 @@ else:
 
     # Mostrar el DataFrame resultante para depuración
     st.dataframe(resultados)
-
 
 
