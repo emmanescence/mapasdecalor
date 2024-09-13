@@ -146,8 +146,8 @@ def main():
     fig.update_traces(textinfo="label+text+value",
                       texttemplate="<b>%{label}</b><br><b>%{customdata[0]:.2f}%</b>")
 
-    # Añadir la columna 'Rendimiento' a customdata
-    fig.update_traces(customdata=resultados[['Rendimiento']])
+    # Añadir la columna 'Rendimiento Diario' a customdata
+    fig.update_traces(customdata=resultados[['Rendimiento Diario']])
 
     # Mostrar el gráfico
     st.plotly_chart(fig)
