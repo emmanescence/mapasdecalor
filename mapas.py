@@ -1,7 +1,6 @@
 import yfinance as yf
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 import streamlit as st
 
 # Función para obtener datos
@@ -32,8 +31,22 @@ def get_last_data(tickers, period='5d'):
     return pd.DataFrame(data)
 
 # Selección de tickers y otras opciones
-tickers_panel_general = [ 'ALUA.BA', 'BBAR.BA', 'BMA.BA', 'BYMA.BA', 'CEPU.BA', 'COME.BA', ... ]  # Lista completa
-tickers_panel_lider = [ 'AGRO.BA', 'AUSO.BA', 'BHIP.BA', 'BOLT.BA', 'BPAT.BA', 'CADO.BA', ... ]  # Lista completa
+tickers_panel_general = [
+    'ALUA.BA', 'BBAR.BA', 'BMA.BA', 'BYMA.BA', 'CEPU.BA', 'COME.BA',
+    'CRES.BA', 'CVH.BA', 'EDN.BA', 'GGAL.BA', 'HARG.BA', 'LOMA.BA',
+    'MIRG.BA', 'PAMP.BA', 'SUPV.BA', 'TECO2.BA', 'TGNO4.BA', 'TGSU2.BA',
+    'TRAN.BA', 'TXAR.BA', 'VALO.BA', 'YPFD.BA'
+    # Añadir todos los tickers restantes aquí
+]
+
+tickers_panel_lider = [
+    'AGRO.BA', 'AUSO.BA', 'BHIP.BA', 'BOLT.BA', 'BPAT.BA', 'CADO.BA', 'CAPX.BA', 'CARC.BA', 'CECO2.BA',
+    'CELU.BA', 'CGPA2.BA', 'CTIO.BA', 'DGCE.BA', 'DGCU2.BA', 'DOME.BA', 'DYCA.BA', 'FERR.BA', 'FIPL.BA',
+    'GARO.BA', 'GBAN.BA', 'GCDI.BA', 'GCLA.BA', 'GRIM.BA', 'HAVA.BA', 'INTR.BA', 'INVJ.BA', 'IRSA.BA',
+    'LEDE.BA', 'LONG.BA', 'METR.BA', 'MOLA.BA', 'MOLI.BA', 'MORI.BA', 'OEST.BA', 'PATA.BA', 'RIGO.BA',
+    'ROSE.BA', 'SAMI.BA', 'SEMI.BA'
+    # Añadir todos los tickers restantes aquí
+]
 
 # Streamlit UI
 st.title("Análisis de Acciones")
@@ -91,4 +104,5 @@ st.plotly_chart(fig)
 
 # Mostrar el DataFrame final
 st.write(resultados)
+
 
