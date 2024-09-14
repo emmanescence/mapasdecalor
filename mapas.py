@@ -54,7 +54,8 @@ if panel_option == 'Panel General':
 elif panel_option == 'Panel Líder':
     tickers = tickers_panel_lider
 else:
-    tickers = tickers_panel_general + tickers_panel_lider
+    # Eliminar duplicados en la combinación de ambos paneles
+    tickers = list(set(tickers_panel_general + tickers_panel_lider))
 
 # Obtener datos
 if performance_option == 'Diario':
@@ -80,6 +81,9 @@ else:
     if metric_option == 'Volumen por Precio':
         resultados['Volumen'] = resultados['Volumen'] * resultados['Rendimiento Diario'].fillna(0)
 
+    # Mostrar el DataFrame final antes de graficar para depuración
+    st.write("Datos a graficar:", resultados)
+
     # Crear el gráfico de treemap
     fig = px.treemap(resultados,
                      path=['Ticker'],
@@ -103,7 +107,5 @@ else:
     # Mostrar el gráfico
     st.plotly_chart(fig)
 
-# Mostrar el DataFrame final
-st.write(resultados)
-
-
+# Mostrar el DataFrame final al final
+st.write("Datos finales:", resultados)
