@@ -29,17 +29,6 @@ def get_last_data(tickers, period='5d', panel_name=''):
             })
     return pd.DataFrame(data)
 
-# Selección de tickers y otras opciones
-tickers_panel_general = [
-    'ALUA.BA', 'BBAR.BA', 'BMA.BA', 'BYMA.BA', 'CEPU.BA', 'COME.BA',
-    # Añadir todos los tickers restantes aquí
-]
-
-tickers_panel_lider = [
-    'AGRO.BA', 'AUSO.BA', 'BHIP.BA', 'BOLT.BA', 'BPAT.BA', 'CADO.BA', 
-    # Añadir todos los tickers restantes aquí
-]
-
 # Streamlit UI
 st.title("Análisis de Acciones")
 
@@ -80,7 +69,7 @@ color_ranges = {
     '-1% a +1%': [-1, 1]
 }
 
-# Crear el gráfico de treemap combinado o separado
+# Crear el gráfico de treemap
 fig = px.treemap(resultados,
                  path=['Panel', 'Ticker'],
                  values='Volumen',
