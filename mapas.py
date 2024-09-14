@@ -114,6 +114,10 @@ if not resultados.empty:
     # Ajustar el tamaño del gráfico
     fig.update_layout(width=1500, height=800)  # Puedes ajustar estos valores según sea necesario
 
+    # Personalizar la información en las etiquetas
+    fig.update_traces(textinfo="label+text+value",
+                  texttemplate="<b>%{label}</b><br><b>%{customdata[0]:.2f}%</b>" if not pd.isna(resultados['Rendimiento']).any() else "<b>%{label}</b>")
+
     # Mostrar el gráfico en Streamlit
     st.plotly_chart(fig)
 else:
