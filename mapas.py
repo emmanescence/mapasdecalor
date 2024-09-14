@@ -4,7 +4,7 @@ import plotly.express as px
 import streamlit as st
 
 # Función para obtener datos
-def get_last_data(tickers, period='5d'):
+def get_last_data(tickers, period='5d', panel_name=''):
     data = []
     for ticker in tickers:
         stock = yf.Ticker(ticker)
@@ -20,13 +20,15 @@ def get_last_data(tickers, period='5d'):
             data.append({
                 'Ticker': ticker,
                 'Volumen': last_volume,
-                'Rendimiento Diario': daily_return
+                'Rendimiento Diario': daily_return,
+                'Panel': panel_name  # Agregar nombre del panel
             })
         else:
             data.append({
                 'Ticker': ticker,
                 'Volumen': None,
-                'Rendimiento Diario': None
+                'Rendimiento Diario': None,
+                'Panel': panel_name  # Agregar nombre del panel
             })
     return pd.DataFrame(data)
 
@@ -51,23 +53,31 @@ performance_option = st.selectbox('Seleccione el rendimiento', ['Diario', 'Seman
 # Determinar tickers y periodo
 if panel_option == 'Panel General':
     tickers = tickers_panel_general
+    panel_name = 'Panel General'
 elif panel_option == 'Panel Líder':
     tickers = tickers_panel_lider
+    panel_name = 'Panel Líder'
 else:
-    # Eliminar duplicados en la combinación de ambos paneles
-    tickers = list(set(tickers_panel_general + tickers_panel_lider))
+    # Obtener datos para ambos paneles y combinar
+    data_general = get_last_data(tickers_panel_general, '5d', 'Panel General').copy()
+    data_lider = get_last_data(tickers_panel_lider, '5d', 'Panel Líder').copy()
+    
+    # Concatenar los DataFrames y eliminar duplicados
+    resultados = pd.concat([data_general, data_lider]).drop_duplicates(subset=['Ticker'])
+    panel_name = 'Todos'
 
-# Obtener datos
-if performance_option == 'Diario':
-    period = '5d'
-elif performance_option == 'Semanal':
-    period = '1wk'
-elif performance_option == 'Mensual':
-    period = '1mo'
-else:
-    period = '1y'
+# Obtener datos si no estamos en 'Todos'
+if panel_option != 'Todos':
+    if performance_option == 'Diario':
+        period = '5d'
+    elif performance_option == 'Semanal':
+        period = '1wk'
+    elif performance_option == 'Mensual':
+        period = '1mo'
+    else:
+        period = '1y'
 
-resultados = get_last_data(tickers, period)
+    resultados = get_last_data(tickers, period, panel_name)
 
 # Filtrar datos inválidos
 resultados = resultados.dropna(subset=['Volumen', 'Rendimiento Diario'])
@@ -84,9 +94,13 @@ else:
     # Mostrar el DataFrame final antes de graficar para depuración
     st.write("Datos a graficar:", resultados)
 
+    # Depuración: Mostrar valores de rendimiento diario para los tickers combinados
+    for idx, row in resultados.iterrows():
+        st.write(f"Ticker: {row['Ticker']}, Rendimiento Diario: {row['Rendimiento Diario']}")
+
     # Crear el gráfico de treemap
     fig = px.treemap(resultados,
-                     path=['Ticker'],
+                     path=['Panel', 'Ticker'],  # Agregar 'Panel' para mantener la unicidad
                      values='Volumen',
                      color='Rendimiento Diario',
                      color_continuous_scale='RdYlGn',
@@ -98,7 +112,6 @@ else:
     fig.update_traces(customdata=resultados[['Rendimiento Diario']])
     
     # Actualizar las etiquetas para que coincidan con el DataFrame
-    # Mostrando solo el valor del DataFrame sin ningún cálculo adicional
     fig.update_traces(textinfo="label+text+value",
                       texttemplate="<b>%{label}</b><br>Rendimiento: %{customdata[0]:.2f}%")
 
