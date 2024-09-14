@@ -94,12 +94,13 @@ else:
                      range_color=[-10, 10],
                      title="Panel general: Volumen Operado y Rendimiento Diario")
 
-    # Actualizar las etiquetas para que coincidan con el DataFrame
-    fig.update_traces(textinfo="label+text+value",
-                      texttemplate="<b>%{label}</b><br><b>%{customdata[0]:.2f}%</b>")
-
     # Añadir la columna 'Rendimiento Diario' a customdata
     fig.update_traces(customdata=resultados[['Rendimiento Diario']])
+    
+    # Actualizar las etiquetas para que coincidan con el DataFrame
+    # Mostrando solo el valor del DataFrame sin ningún cálculo adicional
+    fig.update_traces(textinfo="label+text+value",
+                      texttemplate="<b>%{label}</b><br>Rendimiento: %{customdata[0]:.2f}%")
 
     # Ajustar el tamaño del gráfico
     fig.update_layout(width=2000, height=800)
@@ -109,3 +110,4 @@ else:
 
 # Mostrar el DataFrame final al final
 st.write("Datos finales:", resultados)
+
