@@ -3,11 +3,16 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-# Definir listas de tickers
 tickers_panel_general = [ 
     'ALUA.BA', 'BBAR.BA', 'BMA.BA', 'BYMA.BA', 'CEPU.BA', 'COME.BA',
     'CRES.BA', 'CVH.BA', 'EDN.BA', 'GGAL.BA', 'HARG.BA', 'LOMA.BA',
-    'MIRG.BA', 'PAMP.BA', 'SUPV.BA', 'TECO2.BA', 'TGNO4.BA', 'TGSU2.BA'
+    'MIRG.BA', 'PAMP.BA', 'SUPV.BA', 'TECO2.BA', 'TGNO4.BA', 'TGSU2.BA',
+    'TRAN.BA', 'TXAR.BA', 'VALO.BA', 'YPFD.BA',
+    'AGRO.BA', 'AUSO.BA', 'BHIP.BA', 'BOLT.BA', 'BPAT.BA', 'CADO.BA', 'CAPX.BA', 'CARC.BA', 'CECO2.BA',
+    'CELU.BA', 'CGPA2.BA', 'CTIO.BA', 'DGCE.BA', 'DGCU2.BA', 'DOME.BA', 'DYCA.BA', 'FERR.BA', 'FIPL.BA',
+    'GARO.BA', 'GBAN.BA', 'GCDI.BA', 'GCLA.BA', 'GRIM.BA', 'HAVA.BA', 'INTR.BA', 'INVJ.BA', 'IRSA.BA',
+    'LEDE.BA', 'LONG.BA', 'METR.BA', 'MOLA.BA', 'MOLI.BA', 'MORI.BA', 'OEST.BA', 'PATA.BA', 'RIGO.BA',
+    'ROSE.BA', 'SAMI.BA', 'SEMI.BA'
 ]
 
 tickers_panel_lider = [
@@ -18,7 +23,6 @@ tickers_panel_lider = [
     'ROSE.BA', 'SAMI.BA', 'SEMI.BA'
 ]
 
-# Función para obtener datos
 def get_last_data(tickers, period='5d', panel_name=''):
     data = []
     for ticker in tickers:
@@ -44,7 +48,6 @@ def get_last_data(tickers, period='5d', panel_name=''):
             })
     return pd.DataFrame(data)
 
-# Definir rangos de colores para la escala
 color_ranges = {
     '-10% a +10%': [-10, 10],
     '-6% a +6%': [-6, 6],
@@ -52,13 +55,11 @@ color_ranges = {
     '-1% a +1%': [-1, 1]
 }
 
-# Streamlit UI
 st.title("Análisis de Acciones")
 
 panel_option = st.selectbox('Seleccione el panel', ['Panel General', 'Panel Líder', 'Todos'])
 color_scale_option = st.selectbox('Seleccione la escala de colores', ['-10% a +10%', '-6% a +6%', '-3% a +3%', '-1% a +1%'])
 
-# Determinar tickers y periodo
 if panel_option == 'Panel General':
     tickers = tickers_panel_general
     panel_name = 'Panel General'
@@ -68,22 +69,18 @@ elif panel_option == 'Panel Líder':
     panel_name = 'Panel Líder'
     resultados = get_last_data(tickers, '5d', panel_name)
 else:
-    # Obtener datos para ambos paneles
     data_general = get_last_data(tickers_panel_general, '5d', 'Panel General')
     data_lider = get_last_data(tickers_panel_lider, '5d', 'Panel Líder')
 
-    # Filtrar datos válidos después de la combinación
     data_general = data_general.dropna(subset=['Volumen', 'Rendimiento Diario'])
     data_general = data_general[data_general['Volumen'] > 0]
     
     data_lider = data_lider.dropna(subset=['Volumen', 'Rendimiento Diario'])
     data_lider = data_lider[data_lider['Volumen'] > 0]
 
-    # Mostrar los DataFrames combinados para ambos paneles
     st.write("Datos finales para ambos paneles combinados:")
     st.write(pd.concat([data_general, data_lider]))
 
-    # Crear gráficos por separado para panel general y panel líder
     fig_general = px.treemap(data_general,
                             path=['Ticker'],
                             values='Volumen',
@@ -104,20 +101,16 @@ else:
                           title="Panel Líder",
                           labels={'Rendimiento Diario': 'Rendimiento'})
     
-    # Mostrar gráficos de panel general y panel líder por separado
     st.plotly_chart(fig_general)
     st.plotly_chart(fig_lider)
-    
-# Eliminar filas con valores nulos o cero en 'Volumen' para la opción seleccionada
+
 if panel_option != 'Todos':
     resultados = resultados.dropna(subset=['Volumen', 'Rendimiento Diario'])
     resultados = resultados[resultados['Volumen'] > 0]
 
-    # Verificar si el DataFrame tiene datos válidos
     if resultados.empty:
         st.write("No hay datos válidos para graficar.")
     else:
-        # Crear el gráfico de treemap
         fig = px.treemap(resultados,
                          path=['Panel', 'Ticker'],
                          values='Volumen',
@@ -127,14 +120,5 @@ if panel_option != 'Todos':
                          range_color=color_ranges[color_scale_option],
                          title="Análisis de Acciones",
                          labels={'Rendimiento Diario': 'Rendimiento'})
-        
-        fig.update_layout(width=1000, height=700)
-
-        # Mostrar el gráfico y el DataFrame final
         st.plotly_chart(fig)
-        st.write("Datos finales:", resultados)
 
-
-        # Mostrar el gráfico y el DataFrame final
-        st.plotly_chart(fig)
-        st.write("Datos finales:", resultados)
