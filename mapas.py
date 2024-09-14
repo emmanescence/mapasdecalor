@@ -39,14 +39,6 @@ def get_data(tickers, period='1d', value_metric='Capitalización'):
             elif period == '1y':
                 period_data = hist.resample('A').last().tail(2)  # Últimos dos años
                 volume_sum = hist['Volume'].resample('A').sum().iloc[-1]  # Sumar volumen anual
-            elif period == 'last_week':
-                # Últimos 5 días hábiles
-                period_data = hist.tail(5)
-                volume_sum = hist['Volume'].tail(5).sum()
-            elif period == 'last_month':
-                # Últimos 20 días hábiles
-                period_data = hist.tail(20)
-                volume_sum = hist['Volume'].tail(20).sum()
             else:
                 raise ValueError("Periodo no soportado")
 
@@ -87,18 +79,16 @@ st.sidebar.header('Parámetros de Selección')
 
 # Parámetros de selección en la barra lateral
 panel = st.sidebar.selectbox('Seleccionar Panel', ('todos', 'panel_lider', 'panel_general'))
-period = st.sidebar.selectbox('Seleccionar Periodo', ('1d', '1wk', '1mo', '1y', 'Última semana', 'Último mes'))
+period = st.sidebar.selectbox('Seleccionar Periodo', ('diario', 'semana en curso', 'mes en curso', 'año en curso'))
 value_metric = st.sidebar.selectbox('Métrica de Valor', ('Capitalización', 'Volumen'))
 range_colors = st.sidebar.slider('Rango de Colores para Rendimiento', min_value=1, max_value=10, value=3)
 
-# Mapear los periodos de la selección a los periodos soportados
-period_map = {
-    '1d': '1d',
-    '1wk': '1wk',
-    '1mo': '1mo',
-    '1y': '1y',
-    'Última semana': 'last_week',
-    'Último mes': 'last_month'
+# Mapear períodos a códigos
+period_mapping = {
+    'diario': '1d',
+    'semana en curso': '1wk',
+    'mes en curso': '1mo',
+    'año en curso': '1y'
 }
 
 # Seleccionar tickers según el panel
@@ -112,7 +102,7 @@ else:
     st.error("Panel no soportado")
 
 # Obtener datos
-resultados = get_data(tickers, period_map[period], value_metric)
+resultados = get_data(tickers, period_mapping.get(period, '1d'), value_metric)
 
 # Filtrar datos válidos (remover NaNs)
 resultados = resultados.dropna(subset=['Value', 'Rendimiento'])
@@ -128,7 +118,7 @@ if not resultados.empty:
                      color_continuous_scale=[(0, 'red'), (0.5, 'white'), (1, 'darkgreen')],
                      color_continuous_midpoint=0,  # Punto medio de la escala en 0%
                      range_color=[-range_colors, range_colors],  # Ajusta según el rango de rendimiento esperado
-                     title=f"Panel general: {value_metric} y Rendimiento ({'diario' if period == '1d' else 'semanal' if period == '1wk' else 'mensual' if period == '1mo' else 'anual' if period == '1y' else 'última semana' if period == 'last_week' else 'último mes'})")
+                     title=f"Panel general: {value_metric} y Rendimiento ({period})")
 
     # Ajustar el tamaño del gráfico
     fig.update_layout(width=1500, height=800)  # Puedes ajustar estos valores según sea necesario
@@ -141,4 +131,3 @@ if not resultados.empty:
     st.plotly_chart(fig)
 else:
     st.warning("No hay datos válidos para mostrar.")
-
