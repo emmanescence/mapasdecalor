@@ -90,27 +90,34 @@ color_ranges = {
     '-1% a +1%': [-1, 1]
 }
 
-# Crear el gráfico de treemap
-fig = px.treemap(resultados,
-                 path=['Panel', 'Ticker'],
-                 values='Volumen',
-                 color='Rendimiento Diario',
-                 color_continuous_scale='RdYlGn',
-                 color_continuous_midpoint=0,
-                 range_color=color_ranges[color_scale_option],
-                 title="Análisis de Acciones",
-                 labels={'Rendimiento Diario': 'Rendimiento'})
+# Eliminar filas con valores nulos o cero en 'Volumen'
+resultados = resultados.dropna(subset=['Volumen', 'Rendimiento Diario'])
+resultados = resultados[resultados['Volumen'] > 0]
 
-# Generar etiquetas correctas
-resultados['Etiqueta'] = resultados.apply(lambda row: f"{row['Ticker']}: {row['Rendimiento Diario']:.2f}%", axis=1)
-fig.update_traces(
-    text=resultados['Etiqueta'],
-    textinfo="label+text"
-)
+# Verificar si el DataFrame tiene datos válidos
+if resultados.empty:
+    st.write("No hay datos válidos para graficar.")
+else:
+    # Crear el gráfico de treemap
+    fig = px.treemap(resultados,
+                     path=['Panel', 'Ticker'],
+                     values='Volumen',
+                     color='Rendimiento Diario',
+                     color_continuous_scale='RdYlGn',
+                     color_continuous_midpoint=0,
+                     range_color=color_ranges[color_scale_option],
+                     title="Análisis de Acciones",
+                     labels={'Rendimiento Diario': 'Rendimiento'})
 
-fig.update_layout(width=1000, height=700)
+    # Generar etiquetas correctas
+    resultados['Etiqueta'] = resultados.apply(lambda row: f"{row['Ticker']}: {row['Rendimiento Diario']:.2f}%", axis=1)
+    fig.update_traces(
+        text=resultados['Etiqueta'],
+        textinfo="label+text"
+    )
 
-# Mostrar el gráfico y el DataFrame final
-st.plotly_chart(fig)
-st.write("Datos finales:", resultados)
+    fig.update_layout(width=1000, height=700)
 
+    # Mostrar el gráfico y el DataFrame final
+    st.plotly_chart(fig)
+    st.write("Datos finales:", resultados)
