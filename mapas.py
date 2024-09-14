@@ -10,25 +10,22 @@ def get_last_data(tickers, period='5d', panel_name=''):
         stock = yf.Ticker(ticker)
         hist = stock.history(period=period)
         if len(hist) >= 2:
-            # Obtener el precio de cierre y volumen del último día
             last_close = hist['Close'].iloc[-1]
             last_volume = hist['Volume'].iloc[-1]
-            # Obtener el precio de cierre del día anterior
             previous_close = hist['Close'].iloc[-2]
-            # Calcular el rendimiento diario
             daily_return = (last_close - previous_close) / previous_close * 100
             data.append({
                 'Ticker': ticker,
                 'Volumen': last_volume,
                 'Rendimiento Diario': daily_return,
-                'Panel': panel_name  # Agregar nombre del panel
+                'Panel': panel_name
             })
         else:
             data.append({
                 'Ticker': ticker,
                 'Volumen': None,
                 'Rendimiento Diario': None,
-                'Panel': panel_name  # Agregar nombre del panel
+                'Panel': panel_name
             })
     return pd.DataFrame(data)
 
@@ -59,10 +56,14 @@ elif panel_option == 'Panel Líder':
     panel_name = 'Panel Líder'
 else:
     # Obtener datos para ambos paneles
-    data_general = get_last_data(tickers_panel_general, '5d', 'Panel General').copy()
-    data_lider = get_last_data(tickers_panel_lider, '5d', 'Panel Líder').copy()
+    data_general = get_last_data(tickers_panel_general, '5d', 'Panel General')
+    data_lider = get_last_data(tickers_panel_lider, '5d', 'Panel Líder')
     
-    # Concatenar los DataFrames y mantener el índice único para evitar errores
+    # Comprobar la combinación de datos
+    st.write("Datos Panel General:", data_general)
+    st.write("Datos Panel Líder:", data_lider)
+    
+    # Concatenar los DataFrames
     resultados = pd.concat([data_general, data_lider], ignore_index=True)
     panel_name = 'Todos'
 
@@ -96,7 +97,7 @@ else:
 
     # Crear el gráfico de treemap
     fig = px.treemap(resultados,
-                     path=['Panel', 'Ticker'],  # Agregar 'Panel' para mantener la unicidad
+                     path=['Panel', 'Ticker'],
                      values='Volumen',
                      color='Rendimiento Diario',
                      color_continuous_scale='RdYlGn',
@@ -104,7 +105,7 @@ else:
                      range_color=[-10, 10],
                      title="Panel general: Volumen Operado y Rendimiento Diario",
                      labels={'Rendimiento Diario': 'Rendimiento'})
-
+    
     # Asignar etiquetas directamente
     etiquetas = resultados.apply(lambda row: f"{row['Ticker']}: {row['Rendimiento Diario']:.2f}%", axis=1)
     
@@ -121,5 +122,3 @@ else:
 
 # Mostrar el DataFrame final al final
 st.write("Datos finales:", resultados)
-
-
