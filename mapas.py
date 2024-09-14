@@ -1,119 +1,75 @@
 import yfinance as yf
 import pandas as pd
 import plotly.express as px
-import streamlit as st
 
-tickers_panel_general = [ 
+# Lista de tickers
+tickers_panel_lider = [
     'ALUA.BA', 'BBAR.BA', 'BMA.BA', 'BYMA.BA', 'CEPU.BA', 'COME.BA',
     'CRES.BA', 'CVH.BA', 'EDN.BA', 'GGAL.BA', 'HARG.BA', 'LOMA.BA',
     'MIRG.BA', 'PAMP.BA', 'SUPV.BA', 'TECO2.BA', 'TGNO4.BA', 'TGSU2.BA',
-    'TRAN.BA', 'TXAR.BA', 'VALO.BA', 'YPFD.BA'
+    'TRAN.BA', 'TXAR.BA', 'VALO.BA', 'YPFD.BA', 'AGRO.BA', 'AUSO.BA', 'BHIP.BA', 
+    'BOLT.BA', 'BPAT.BA', 'CADO.BA', 'CAPX.BA', 'CARC.BA', 'CECO2.BA',
+    'CELU.BA', 'CGPA2.BA', 'CTIO.BA', 'DGCE.BA', 'DGCU2.BA', 'DOME.BA', 
+    'DYCA.BA', 'FERR.BA', 'FIPL.BA', 'GARO.BA', 'GBAN.BA', 'GCDI.BA', 
+    'GCLA.BA', 'GRIM.BA', 'HAVA.BA', 'INTR.BA', 'INVJ.BA', 'IRSA.BA',
+    'LEDE.BA', 'LONG.BA', 'METR.BA', 'MOLA.BA', 'MOLI.BA', 'MORI.BA', 
+    'OEST.BA', 'PATA.BA', 'RIGO.BA', 'ROSE.BA', 'SAMI.BA', 'SEMI.BA'
 ]
 
-tickers_panel_lider = [
-    'AGRO.BA', 'AUSO.BA', 'BHIP.BA', 'BOLT.BA', 'BPAT.BA', 'CADO.BA', 'CAPX.BA', 'CARC.BA', 'CECO2.BA',
-    'CELU.BA', 'CGPA2.BA', 'CTIO.BA', 'DGCE.BA', 'DGCU2.BA', 'DOME.BA', 'DYCA.BA', 'FERR.BA', 'FIPL.BA',
-    'GARO.BA', 'GBAN.BA', 'GCDI.BA', 'GCLA.BA', 'GRIM.BA', 'HAVA.BA', 'INTR.BA', 'INVJ.BA', 'IRSA.BA',
-    'LEDE.BA', 'LONG.BA', 'METR.BA', 'MOLA.BA', 'MOLI.BA', 'MORI.BA', 'OEST.BA', 'PATA.BA', 'RIGO.BA',
-    'ROSE.BA', 'SAMI.BA', 'SEMI.BA'
-]
-
-def get_last_data(tickers, period='5d', panel_name=''):
+# Función para obtener datos
+def get_last_data(tickers):
     data = []
     for ticker in tickers:
         stock = yf.Ticker(ticker)
-        hist = stock.history(period=period)
+        hist = stock.history(period='5d')  # Obtener datos de los últimos 5 días
         if len(hist) >= 2:
+            # Obtener el precio de cierre y volumen del último día
             last_close = hist['Close'].iloc[-1]
             last_volume = hist['Volume'].iloc[-1]
+
+            # Obtener el precio de cierre del día anterior
             previous_close = hist['Close'].iloc[-2]
+
+            # Calcular el rendimiento diario
             daily_return = (last_close - previous_close) / previous_close * 100
+
             data.append({
                 'Ticker': ticker,
                 'Volumen': last_volume,
-                'Rendimiento Diario': daily_return,
-                'Panel': panel_name
+                'Rendimiento Diario': daily_return
             })
         else:
             data.append({
                 'Ticker': ticker,
                 'Volumen': None,
-                'Rendimiento Diario': None,
-                'Panel': panel_name
+                'Rendimiento Diario': None
             })
     return pd.DataFrame(data)
 
-color_ranges = {
-    '-10% a +10%': [-10, 10],
-    '-6% a +6%': [-6, 6],
-    '-3% a +3%': [-3, 3],
-    '-1% a +1%': [-1, 1]
-}
+# Obtener datos
+resultados = get_last_data(tickers_panel_lider)
 
-st.title("Análisis de Acciones")
+# Crear el gráfico de treemap con etiquetas personalizadas y escala de colores ajustada
+fig = px.treemap(resultados,
+                 path=['Ticker'],
+                 values='Volumen',
+                 color='Rendimiento Diario',
+                 color_continuous_scale=[(0, 'red'), (0.5, 'white'), (1, 'darkgreen')],
+                 color_continuous_midpoint=0,  # Punto medio de la escala en 0%
+                 range_color=[-3, 3],  # Rango de colores desde -3% a +3%
+                 title="Panel general: Volumen Operado y Rendimiento Diario")
 
-panel_option = st.selectbox('Seleccione el panel', ['Panel General', 'Panel Líder', 'Todos'])
-color_scale_option = st.selectbox('Seleccione la escala de colores', ['-10% a +10%', '-6% a +6%', '-3% a +3%', '-1% a +1%'])
+# Ajustar el tamaño del gráfico
+fig.update_layout(width=2000, height=800)  # Puedes ajustar estos valores según sea necesario
 
-if panel_option == 'Panel General':
-    tickers = tickers_panel_general
-    panel_name = 'Panel General'
-    resultados = get_last_data(tickers, '5d', panel_name)
-elif panel_option == 'Panel Líder':
-    tickers = tickers_panel_lider
-    panel_name = 'Panel Líder'
-    resultados = get_last_data(tickers, '5d', panel_name)
-else:
-    data_general = get_last_data(tickers_panel_general, '5d', 'Panel General')
-    data_lider = get_last_data(tickers_panel_lider, '5d', 'Panel Líder')
+# Personalizar la información en las etiquetas con negrita
+fig.update_traces(textinfo="label+text+value",
+                  texttemplate="<b>%{label}</b><br><b>%{customdata[0]:.2f}%</b>")
 
-    data_general = data_general.dropna(subset=['Volumen', 'Rendimiento Diario'])
-    data_general = data_general[data_general['Volumen'] > 0]
-    
-    data_lider = data_lider.dropna(subset=['Volumen', 'Rendimiento Diario'])
-    data_lider = data_lider[data_lider['Volumen'] > 0]
+# Añadir la columna 'Rendimiento Diario' a customdata
+fig.update_traces(customdata=resultados[['Rendimiento Diario']])
 
-    st.write("Datos finales para ambos paneles combinados:")
-    st.write(pd.concat([data_general, data_lider]))
+# Mostrar el gráfico
+fig.show()
 
-    fig_general = px.treemap(data_general,
-                            path=['Ticker'],
-                            values='Volumen',
-                            color='Rendimiento Diario',
-                            color_continuous_scale='RdYlGn',
-                            color_continuous_midpoint=0,
-                            range_color=color_ranges[color_scale_option],
-                            title="Panel General",
-                            labels={'Rendimiento Diario': 'Rendimiento'})
-    
-    fig_lider = px.treemap(data_lider,
-                          path=['Ticker'],
-                          values='Volumen',
-                          color='Rendimiento Diario',
-                          color_continuous_scale='RdYlGn',
-                          color_continuous_midpoint=0,
-                          range_color=color_ranges[color_scale_option],
-                          title="Panel Líder",
-                          labels={'Rendimiento Diario': 'Rendimiento'})
-    
-    st.plotly_chart(fig_general)
-    st.plotly_chart(fig_lider)
-
-if panel_option != 'Todos':
-    resultados = resultados.dropna(subset=['Volumen', 'Rendimiento Diario'])
-    resultados = resultados[resultados['Volumen'] > 0]
-
-    if resultados.empty:
-        st.write("No hay datos válidos para graficar.")
-    else:
-        fig = px.treemap(resultados,
-                         path=['Panel', 'Ticker'],
-                         values='Volumen',
-                         color='Rendimiento Diario',
-                         color_continuous_scale='RdYlGn',
-                         color_continuous_midpoint=0,
-                         range_color=color_ranges[color_scale_option],
-                         title="Análisis de Acciones",
-                         labels={'Rendimiento Diario': 'Rendimiento'})
-        st.plotly_chart(fig)
-
+resultados
