@@ -8,12 +8,7 @@ tickers_panel_general = [
     'ALUA.BA', 'BBAR.BA', 'BMA.BA', 'BYMA.BA', 'CEPU.BA', 'COME.BA',
     'CRES.BA', 'CVH.BA', 'EDN.BA', 'GGAL.BA', 'HARG.BA', 'LOMA.BA',
     'MIRG.BA', 'PAMP.BA', 'SUPV.BA', 'TECO2.BA', 'TGNO4.BA', 'TGSU2.BA',
-    'TRAN.BA', 'TXAR.BA', 'VALO.BA', 'YPFD.BA',
-    'AGRO.BA', 'AUSO.BA', 'BHIP.BA', 'BOLT.BA', 'BPAT.BA', 'CADO.BA', 'CAPX.BA', 'CARC.BA', 'CECO2.BA',
-    'CELU.BA', 'CGPA2.BA', 'CTIO.BA', 'DGCE.BA', 'DGCU2.BA', 'DOME.BA', 'DYCA.BA', 'FERR.BA', 'FIPL.BA',
-    'GARO.BA', 'GBAN.BA', 'GCDI.BA', 'GCLA.BA', 'GRIM.BA', 'HAVA.BA', 'INTR.BA', 'INVJ.BA', 'IRSA.BA',
-    'LEDE.BA', 'LONG.BA', 'METR.BA', 'MOLA.BA', 'MOLI.BA', 'MORI.BA', 'OEST.BA', 'PATA.BA', 'RIGO.BA',
-    'ROSE.BA', 'SAMI.BA', 'SEMI.BA'
+    'TRAN.BA', 'TXAR.BA', 'VALO.BA', 'YPFD.BA'
 ]
 
 tickers_panel_lider = [
@@ -79,45 +74,64 @@ else:
     data_lider = data_lider.dropna(subset=['Volumen', 'Rendimiento Diario'])
     data_lider = data_lider[data_lider['Volumen'] > 0]
 
-    # Concatenar ambos DataFrames
-    resultados = pd.concat([data_general, data_lider])
+    # Crear gráficos por separado para panel general y panel líder
+    fig_general = px.treemap(data_general,
+                            path=['Ticker'],
+                            values='Volumen',
+                            color='Rendimiento Diario',
+                            color_continuous_scale='RdYlGn',
+                            color_continuous_midpoint=0,
+                            range_color=color_ranges[color_scale_option],
+                            title="Panel General",
+                            labels={'Rendimiento Diario': 'Rendimiento'})
+    
+    fig_lider = px.treemap(data_lider,
+                          path=['Ticker'],
+                          values='Volumen',
+                          color='Rendimiento Diario',
+                          color_continuous_scale='RdYlGn',
+                          color_continuous_midpoint=0,
+                          range_color=color_ranges[color_scale_option],
+                          title="Panel Líder",
+                          labels={'Rendimiento Diario': 'Rendimiento'})
+    
+    # Mostrar gráficos de panel general y panel líder por separado
+    st.plotly_chart(fig_general)
+    st.plotly_chart(fig_lider)
+    
+    # Mostrar el DataFrame final
+    st.write("Datos finales para ambos paneles combinados:")
+    st.write(pd.concat([data_general, data_lider]))
 
-# Escalas de colores
-color_ranges = {
-    '-10% a +10%': [-10, 10],
-    '-6% a +6%': [-6, 6],
-    '-3% a +3%': [-3, 3],
-    '-1% a +1%': [-1, 1]
-}
+# Eliminar filas con valores nulos o cero en 'Volumen' para la opción seleccionada
+if panel_option != 'Todos':
+    resultados = resultados.dropna(subset=['Volumen', 'Rendimiento Diario'])
+    resultados = resultados[resultados['Volumen'] > 0]
 
-# Eliminar filas con valores nulos o cero en 'Volumen'
-resultados = resultados.dropna(subset=['Volumen', 'Rendimiento Diario'])
-resultados = resultados[resultados['Volumen'] > 0]
+    # Verificar si el DataFrame tiene datos válidos
+    if resultados.empty:
+        st.write("No hay datos válidos para graficar.")
+    else:
+        # Crear el gráfico de treemap
+        fig = px.treemap(resultados,
+                         path=['Panel', 'Ticker'],
+                         values='Volumen',
+                         color='Rendimiento Diario',
+                         color_continuous_scale='RdYlGn',
+                         color_continuous_midpoint=0,
+                         range_color=color_ranges[color_scale_option],
+                         title="Análisis de Acciones",
+                         labels={'Rendimiento Diario': 'Rendimiento'})
+        
+        # Generar etiquetas correctas
+        resultados['Etiqueta'] = resultados.apply(lambda row: f"{row['Ticker']}: {row['Rendimiento Diario']:.2f}%", axis=1)
+        fig.update_traces(
+            text=resultados['Etiqueta'],
+            textinfo="label+text"
+        )
+        
+        fig.update_layout(width=1000, height=700)
 
-# Verificar si el DataFrame tiene datos válidos
-if resultados.empty:
-    st.write("No hay datos válidos para graficar.")
-else:
-    # Crear el gráfico de treemap
-    fig = px.treemap(resultados,
-                     path=['Panel', 'Ticker'],
-                     values='Volumen',
-                     color='Rendimiento Diario',
-                     color_continuous_scale='RdYlGn',
-                     color_continuous_midpoint=0,
-                     range_color=color_ranges[color_scale_option],
-                     title="Análisis de Acciones",
-                     labels={'Rendimiento Diario': 'Rendimiento'})
-
-    # Generar etiquetas correctas
-    resultados['Etiqueta'] = resultados.apply(lambda row: f"{row['Ticker']}: {row['Rendimiento Diario']:.2f}%", axis=1)
-    fig.update_traces(
-        text=resultados['Etiqueta'],
-        textinfo="label+text"
-    )
-
-    fig.update_layout(width=1000, height=700)
-
-    # Mostrar el gráfico y el DataFrame final
-    st.plotly_chart(fig)
-    st.write("Datos finales:", resultados)
+        # Mostrar el gráfico y el DataFrame final
+        st.plotly_chart(fig)
+        st.write("Datos finales:", resultados)
