@@ -94,7 +94,8 @@ fig = px.treemap(resultados,
 # Etiquetas con valor correcto
 etiquetas = resultados.apply(lambda row: f"{row['Ticker']}: {row['Rendimiento Diario']:.2f}%", axis=1)
 fig.update_traces(
-    textinfo="label+text"
+    text=etiquetas,
+    textinfo="labels+text"
 )
 
 fig.update_layout(width=1000, height=700)
