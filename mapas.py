@@ -35,7 +35,7 @@ def get_last_data(tickers):
 
             data.append({
                 'Ticker': ticker,
-                'Volumen': last_volume,
+                'Volumen': last_volume if last_volume > 0 else None,
                 'Rendimiento Diario': daily_return
             })
         else:
@@ -44,7 +44,11 @@ def get_last_data(tickers):
                 'Volumen': None,
                 'Rendimiento Diario': None
             })
-    return pd.DataFrame(data)
+    df = pd.DataFrame(data)
+    # Eliminar filas con 'Volumen' nulo o cero
+    df = df.dropna(subset=['Volumen'])
+    df = df[df['Volumen'] > 0]
+    return df
 
 # Obtener datos
 resultados = get_last_data(tickers_panel_lider)
@@ -73,3 +77,4 @@ fig.update_traces(customdata=resultados[['Rendimiento Diario']])
 fig.show()
 
 resultados
+
