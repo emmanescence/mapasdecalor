@@ -84,6 +84,7 @@ resultados = resultados.dropna(subset=['Volumen', 'Rendimiento Diario'])
 resultados = resultados[resultados['Volumen'] > 0]
 
 # Crear una columna con las etiquetas que queremos mostrar en el gráfico
+# Crear la etiqueta directamente en una nueva columna del DataFrame
 resultados['Etiqueta'] = resultados['Ticker'] + ": " + resultados['Rendimiento Diario'].round(2).astype(str) + "%"
 
 # Verificar si hay datos para graficar
@@ -109,13 +110,13 @@ else:
                      color_continuous_scale='RdYlGn',
                      color_continuous_midpoint=0,
                      range_color=[-10, 10],
-                     title="Panel general: Volumen Operado y Rendimiento Diario")
+                     title="Panel general: Volumen Operado y Rendimiento Diario",
+                     labels={'Rendimiento Diario': 'Rendimiento'})
 
     # Actualizar las etiquetas para que coincidan con el DataFrame
     fig.update_traces(
         textinfo="label+text+value",
-        customdata=resultados[['Etiqueta']],
-        texttemplate="%{customdata[0]}"
+        text=resultados['Etiqueta']  # Usar la columna 'Etiqueta' directamente
     )
 
     # Ajustar el tamaño del gráfico
