@@ -79,16 +79,16 @@ st.sidebar.header('Parámetros de Selección')
 
 # Parámetros de selección en la barra lateral
 panel = st.sidebar.selectbox('Seleccionar Panel', ('todos', 'panel_lider', 'panel_general'))
-period = st.sidebar.selectbox('Seleccionar Periodo', ('1d', '1wk', '1mo', '1y'))
+period = st.sidebar.selectbox('Seleccionar Periodo', ('diario', 'semana en curso', 'mes en curso', 'año en curso'))
 value_metric = st.sidebar.selectbox('Métrica de Valor', ('Capitalización', 'Volumen'))
 range_colors = st.sidebar.slider('Rango de Colores para Rendimiento', min_value=1, max_value=10, value=3)
 
-# Mapear períodos a nombres más descriptivos
-period_labels = {
-    '1d': 'diario',
-    '1wk': 'semana en curso',
-    '1mo': 'mes en curso',
-    '1y': 'año en curso'
+# Mapear períodos a códigos
+period_mapping = {
+    'diario': '1d',
+    'semana en curso': '1wk',
+    'mes en curso': '1mo',
+    'año en curso': '1y'
 }
 
 # Seleccionar tickers según el panel
@@ -102,7 +102,7 @@ else:
     st.error("Panel no soportado")
 
 # Obtener datos
-resultados = get_data(tickers, period, value_metric)
+resultados = get_data(tickers, period_mapping.get(period, '1d'), value_metric)
 
 # Filtrar datos válidos (remover NaNs)
 resultados = resultados.dropna(subset=['Value', 'Rendimiento'])
@@ -118,7 +118,7 @@ if not resultados.empty:
                      color_continuous_scale=[(0, 'red'), (0.5, 'white'), (1, 'darkgreen')],
                      color_continuous_midpoint=0,  # Punto medio de la escala en 0%
                      range_color=[-range_colors, range_colors],  # Ajusta según el rango de rendimiento esperado
-                     title=f"Panel general: {value_metric} y Rendimiento ({period_labels.get(period, 'desconocido')})")
+                     title=f"Panel general: {value_metric} y Rendimiento ({period})")
 
     # Ajustar el tamaño del gráfico
     fig.update_layout(width=1500, height=800)  # Puedes ajustar estos valores según sea necesario
@@ -131,4 +131,5 @@ if not resultados.empty:
     st.plotly_chart(fig)
 else:
     st.warning("No hay datos válidos para mostrar.")
+
 
