@@ -74,7 +74,7 @@ def get_data(tickers, period='1d', value_metric='Capitalización'):
     return pd.DataFrame(data)
 
 # Configuración de la aplicación Streamlit
-st.title('Análisis de Mercado Bursátil Argentino')
+st.title('Análisis de Mercado Bursátil Argentino - https://x.com/iterAR_eco')
 st.sidebar.header('Parámetros de Selección')
 
 # Parámetros de selección en la barra lateral
