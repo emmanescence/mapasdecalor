@@ -45,6 +45,14 @@ def get_last_data(tickers, period='5d', panel_name=''):
             })
     return pd.DataFrame(data)
 
+# Definir rangos de colores para la escala
+color_ranges = {
+    '-10% a +10%': [-10, 10],
+    '-6% a +6%': [-6, 6],
+    '-3% a +3%': [-3, 3],
+    '-1% a +1%': [-1, 1]
+}
+
 # Streamlit UI
 st.title("Análisis de Acciones")
 
