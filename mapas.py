@@ -58,12 +58,12 @@ elif panel_option == 'Panel Líder':
     tickers = tickers_panel_lider
     panel_name = 'Panel Líder'
 else:
-    # Obtener datos para ambos paneles y combinar
+    # Obtener datos para ambos paneles sin eliminar duplicados
     data_general = get_last_data(tickers_panel_general, '5d', 'Panel General').copy()
     data_lider = get_last_data(tickers_panel_lider, '5d', 'Panel Líder').copy()
     
-    # Concatenar los DataFrames y eliminar duplicados
-    resultados = pd.concat([data_general, data_lider]).drop_duplicates(subset=['Ticker'])
+    # Concatenar los DataFrames pero no eliminar duplicados
+    resultados = pd.concat([data_general, data_lider], ignore_index=True)
     panel_name = 'Todos'
 
 # Obtener datos si no estamos en 'Todos'
@@ -79,7 +79,7 @@ if panel_option != 'Todos':
 
     resultados = get_last_data(tickers, period, panel_name)
 
-# Filtrar datos inválidos
+# Filtrar datos inválidos después de la combinación
 resultados = resultados.dropna(subset=['Volumen', 'Rendimiento Diario'])
 resultados = resultados[resultados['Volumen'] > 0]
 
@@ -123,4 +123,5 @@ else:
 
 # Mostrar el DataFrame final al final
 st.write("Datos finales:", resultados)
+
 
