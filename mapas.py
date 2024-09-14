@@ -83,6 +83,9 @@ if panel_option != 'Todos':
 resultados = resultados.dropna(subset=['Volumen', 'Rendimiento Diario'])
 resultados = resultados[resultados['Volumen'] > 0]
 
+# Crear una columna con las etiquetas que queremos mostrar en el gráfico
+resultados['Etiqueta'] = resultados.apply(lambda row: f"{row['Ticker']}: {row['Rendimiento Diario']:.2f}%", axis=1)
+
 # Verificar si hay datos para graficar
 if resultados.empty:
     st.write("No hay datos suficientes para mostrar el gráfico.")
@@ -108,12 +111,9 @@ else:
                      range_color=[-10, 10],
                      title="Panel general: Volumen Operado y Rendimiento Diario")
 
-    # Añadir la columna 'Rendimiento Diario' a customdata
-    fig.update_traces(customdata=resultados[['Rendimiento Diario']])
-    
     # Actualizar las etiquetas para que coincidan con el DataFrame
     fig.update_traces(textinfo="label+text+value",
-                      texttemplate="<b>%{label}</b><br>Rendimiento: %{customdata[0]:.2f}%")
+                      text=resultados['Etiqueta'])  # Usar la columna 'Etiqueta'
 
     # Ajustar el tamaño del gráfico
     fig.update_layout(width=2000, height=800)
