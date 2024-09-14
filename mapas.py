@@ -104,3 +104,4 @@ fig.update_layout(width=1000, height=700)
 st.plotly_chart(fig)
 st.write("Datos finales:", resultados)
 
+
