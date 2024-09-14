@@ -7,13 +7,7 @@ import streamlit as st
 tickers_panel_general = [ 
     'ALUA.BA', 'BBAR.BA', 'BMA.BA', 'BYMA.BA', 'CEPU.BA', 'COME.BA',
     'CRES.BA', 'CVH.BA', 'EDN.BA', 'GGAL.BA', 'HARG.BA', 'LOMA.BA',
-    'MIRG.BA', 'PAMP.BA', 'SUPV.BA', 'TECO2.BA', 'TGNO4.BA', 'TGSU2.BA',
-    'TRAN.BA', 'TXAR.BA', 'VALO.BA', 'YPFD.BA',
-    'AGRO.BA', 'AUSO.BA', 'BHIP.BA', 'BOLT.BA', 'BPAT.BA', 'CADO.BA', 'CAPX.BA', 'CARC.BA', 'CECO2.BA',
-    'CELU.BA', 'CGPA2.BA', 'CTIO.BA', 'DGCE.BA', 'DGCU2.BA', 'DOME.BA', 'DYCA.BA', 'FERR.BA', 'FIPL.BA',
-    'GARO.BA', 'GBAN.BA', 'GCDI.BA', 'GCLA.BA', 'GRIM.BA', 'HAVA.BA', 'INTR.BA', 'INVJ.BA', 'IRSA.BA',
-    'LEDE.BA', 'LONG.BA', 'METR.BA', 'MOLA.BA', 'MOLI.BA', 'MORI.BA', 'OEST.BA', 'PATA.BA', 'RIGO.BA',
-    'ROSE.BA', 'SAMI.BA', 'SEMI.BA'
+    'MIRG.BA', 'PAMP.BA', 'SUPV.BA', 'TECO2.BA', 'TGNO4.BA', 'TGSU2.BA'
 ]
 
 tickers_panel_lider = [
@@ -62,8 +56,6 @@ color_ranges = {
 st.title("Análisis de Acciones")
 
 panel_option = st.selectbox('Seleccione el panel', ['Panel General', 'Panel Líder', 'Todos'])
-metric_option = st.selectbox('Seleccione la métrica', ['Volumen', 'Volumen por Precio'])
-performance_option = st.selectbox('Seleccione el rendimiento', ['Diario', 'Semanal', 'Mensual', 'Anual'])
 color_scale_option = st.selectbox('Seleccione la escala de colores', ['-10% a +10%', '-6% a +6%', '-3% a +3%', '-1% a +1%'])
 
 # Determinar tickers y periodo
@@ -86,6 +78,10 @@ else:
     
     data_lider = data_lider.dropna(subset=['Volumen', 'Rendimiento Diario'])
     data_lider = data_lider[data_lider['Volumen'] > 0]
+
+    # Mostrar los DataFrames combinados para ambos paneles
+    st.write("Datos finales para ambos paneles combinados:")
+    st.write(pd.concat([data_general, data_lider]))
 
     # Crear gráficos por separado para panel general y panel líder
     fig_general = px.treemap(data_general,
@@ -112,10 +108,6 @@ else:
     st.plotly_chart(fig_general)
     st.plotly_chart(fig_lider)
     
-    # Mostrar el DataFrame final
-    st.write("Datos finales para ambos paneles combinados:")
-    st.write(pd.concat([data_general, data_lider]))
-
 # Eliminar filas con valores nulos o cero en 'Volumen' para la opción seleccionada
 if panel_option != 'Todos':
     resultados = resultados.dropna(subset=['Volumen', 'Rendimiento Diario'])
@@ -135,13 +127,6 @@ if panel_option != 'Todos':
                          range_color=color_ranges[color_scale_option],
                          title="Análisis de Acciones",
                          labels={'Rendimiento Diario': 'Rendimiento'})
-        
-        # Generar etiquetas correctas
-        resultados['Etiqueta'] = resultados.apply(lambda row: f"{row['Ticker']}: {row['Rendimiento Diario']:.2f}%", axis=1)
-        fig.update_traces(
-            text=resultados['Etiqueta'],
-            textinfo="label+text"
-        )
         
         fig.update_layout(width=1000, height=700)
 
