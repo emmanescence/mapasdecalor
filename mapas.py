@@ -51,74 +51,68 @@ performance_option = st.selectbox('Seleccione el rendimiento', ['Diario', 'Seman
 if panel_option == 'Panel General':
     tickers = tickers_panel_general
     panel_name = 'Panel General'
+    resultados = get_last_data(tickers, '5d', panel_name)
 elif panel_option == 'Panel Líder':
     tickers = tickers_panel_lider
     panel_name = 'Panel Líder'
+    resultados = get_last_data(tickers, '5d', panel_name)
 else:
     # Obtener datos para ambos paneles
     data_general = get_last_data(tickers_panel_general, '5d', 'Panel General')
     data_lider = get_last_data(tickers_panel_lider, '5d', 'Panel Líder')
+
+    # Filtrar datos válidos después de la combinación
+    data_general = data_general.dropna(subset=['Volumen', 'Rendimiento Diario'])
+    data_general = data_general[data_general['Volumen'] > 0]
     
-    # Comprobar la combinación de datos
+    data_lider = data_lider.dropna(subset=['Volumen', 'Rendimiento Diario'])
+    data_lider = data_lider[data_lider['Volumen'] > 0]
+
+    # Mostrar los DataFrames finales antes de graficar para depuración
     st.write("Datos Panel General:", data_general)
     st.write("Datos Panel Líder:", data_lider)
+
+    # Crear el gráfico para el panel general
+    fig_general = px.treemap(data_general,
+                            path=['Ticker'],
+                            values='Volumen',
+                            color='Rendimiento Diario',
+                            color_continuous_scale='RdYlGn',
+                            color_continuous_midpoint=0,
+                            range_color=[-10, 10],
+                            title="Panel General: Volumen Operado y Rendimiento Diario",
+                            labels={'Rendimiento Diario': 'Rendimiento'})
     
-    # Concatenar los DataFrames
-    resultados = pd.concat([data_general, data_lider], ignore_index=True)
-    panel_name = 'Todos'
-
-# Obtener datos si no estamos en 'Todos'
-if panel_option != 'Todos':
-    if performance_option == 'Diario':
-        period = '5d'
-    elif performance_option == 'Semanal':
-        period = '1wk'
-    elif performance_option == 'Mensual':
-        period = '1mo'
-    else:
-        period = '1y'
-
-    resultados = get_last_data(tickers, period, panel_name)
-
-# Filtrar datos inválidos después de la combinación
-resultados = resultados.dropna(subset=['Volumen', 'Rendimiento Diario'])
-resultados = resultados[resultados['Volumen'] > 0]
-
-# Verificar si hay datos para graficar
-if resultados.empty:
-    st.write("No hay datos suficientes para mostrar el gráfico.")
-else:
-    # Calcular 'Volumen por Precio' si se selecciona
-    if metric_option == 'Volumen por Precio':
-        resultados['Volumen'] = resultados['Volumen'] * resultados['Rendimiento Diario'].fillna(0)
-
-    # Mostrar el DataFrame final antes de graficar para depuración
-    st.write("Datos a graficar:", resultados)
-
-    # Crear el gráfico de treemap
-    fig = px.treemap(resultados,
-                     path=['Panel', 'Ticker'],
-                     values='Volumen',
-                     color='Rendimiento Diario',
-                     color_continuous_scale='RdYlGn',
-                     color_continuous_midpoint=0,
-                     range_color=[-10, 10],
-                     title="Panel general: Volumen Operado y Rendimiento Diario",
-                     labels={'Rendimiento Diario': 'Rendimiento'})
-    
-    # Asignar etiquetas directamente
-    etiquetas = resultados.apply(lambda row: f"{row['Ticker']}: {row['Rendimiento Diario']:.2f}%", axis=1)
-    
-    fig.update_traces(
-        text=etiquetas,  # Usar la lista de etiquetas generada manualmente
+    etiquetas_general = data_general.apply(lambda row: f"{row['Ticker']}: {row['Rendimiento Diario']:.2f}%", axis=1)
+    fig_general.update_traces(
+        text=etiquetas_general,
         textinfo="label+text"
     )
+    fig_general.update_layout(width=1000, height=500)
+    
+    # Crear el gráfico para el panel líder
+    fig_lider = px.treemap(data_lider,
+                          path=['Ticker'],
+                          values='Volumen',
+                          color='Rendimiento Diario',
+                          color_continuous_scale='RdYlGn',
+                          color_continuous_midpoint=0,
+                          range_color=[-10, 10],
+                          title="Panel Líder: Volumen Operado y Rendimiento Diario",
+                          labels={'Rendimiento Diario': 'Rendimiento'})
+    
+    etiquetas_lider = data_lider.apply(lambda row: f"{row['Ticker']}: {row['Rendimiento Diario']:.2f}%", axis=1)
+    fig_lider.update_traces(
+        text=etiquetas_lider,
+        textinfo="label+text"
+    )
+    fig_lider.update_layout(width=1000, height=500)
 
-    # Ajustar el tamaño del gráfico
-    fig.update_layout(width=2000, height=800)
+    # Mostrar ambos gráficos
+    st.plotly_chart(fig_general)
+    st.plotly_chart(fig_lider)
+    
+# Mostrar el DataFrame final si se selecciona "Panel General" o "Panel Líder"
+if panel_option in ['Panel General', 'Panel Líder']:
+    st.write("Datos finales:", resultados)
 
-    # Mostrar el gráfico
-    st.plotly_chart(fig)
-
-# Mostrar el DataFrame final al final
-st.write("Datos finales:", resultados)
