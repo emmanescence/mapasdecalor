@@ -83,10 +83,6 @@ if panel_option != 'Todos':
 resultados = resultados.dropna(subset=['Volumen', 'Rendimiento Diario'])
 resultados = resultados[resultados['Volumen'] > 0]
 
-# Crear una columna con las etiquetas que queremos mostrar en el gráfico
-# Crear la etiqueta directamente en una nueva columna del DataFrame
-resultados['Etiqueta'] = resultados['Ticker'] + ": " + resultados['Rendimiento Diario'].round(2).astype(str) + "%"
-
 # Verificar si hay datos para graficar
 if resultados.empty:
     st.write("No hay datos suficientes para mostrar el gráfico.")
@@ -98,9 +94,8 @@ else:
     # Mostrar el DataFrame final antes de graficar para depuración
     st.write("Datos a graficar:", resultados)
 
-    # Depuración: Mostrar valores de rendimiento diario para los tickers combinados
-    for idx, row in resultados.iterrows():
-        st.write(f"Ticker: {row['Ticker']}, Rendimiento Diario: {row['Rendimiento Diario']}")
+    # Crear las etiquetas manualmente para cada ticker
+    etiquetas = resultados.apply(lambda row: f"{row['Ticker']}: {row['Rendimiento Diario']:.2f}%", axis=1)
 
     # Crear el gráfico de treemap
     fig = px.treemap(resultados,
@@ -115,8 +110,8 @@ else:
 
     # Actualizar las etiquetas para que coincidan con el DataFrame
     fig.update_traces(
-        textinfo="label+text+value",
-        text=resultados['Etiqueta']  # Usar la columna 'Etiqueta' directamente
+        text=etiquetas,  # Usar la lista de etiquetas generada manualmente
+        textinfo="label+text"
     )
 
     # Ajustar el tamaño del gráfico
@@ -127,4 +122,5 @@ else:
 
 # Mostrar el DataFrame final al final
 st.write("Datos finales:", resultados)
+
 
