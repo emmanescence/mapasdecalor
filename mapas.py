@@ -91,10 +91,10 @@ fig = px.treemap(resultados,
                  title="Análisis de Acciones",
                  labels={'Rendimiento Diario': 'Rendimiento'})
 
-# Etiquetas con valor correcto
-etiquetas = resultados.apply(lambda row: f"{row['Ticker']}: {row['Rendimiento Diario']:.2f}%", axis=1)
+# Generar etiquetas correctas
+resultados['Etiqueta'] = resultados.apply(lambda row: f"{row['Ticker']}: {row['Rendimiento Diario']:.2f}%", axis=1)
 fig.update_traces(
-    text=etiquetas,
+    text=resultados['Etiqueta'],
     textinfo="label+text"
 )
 
@@ -103,5 +103,4 @@ fig.update_layout(width=1000, height=700)
 # Mostrar el gráfico y el DataFrame final
 st.plotly_chart(fig)
 st.write("Datos finales:", resultados)
-
 
