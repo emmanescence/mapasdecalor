@@ -83,6 +83,14 @@ period = st.sidebar.selectbox('Seleccionar Periodo', ('1d', '1wk', '1mo', '1y'))
 value_metric = st.sidebar.selectbox('Métrica de Valor', ('Capitalización', 'Volumen'))
 range_colors = st.sidebar.slider('Rango de Colores para Rendimiento', min_value=1, max_value=10, value=3)
 
+# Mapear períodos a nombres más descriptivos
+period_labels = {
+    '1d': 'diario',
+    '1wk': 'semana en curso',
+    '1mo': 'mes en curso',
+    '1y': 'año en curso'
+}
+
 # Seleccionar tickers según el panel
 if panel == 'panel_lider':
     tickers = tickers_panel_lider
@@ -110,7 +118,7 @@ if not resultados.empty:
                      color_continuous_scale=[(0, 'red'), (0.5, 'white'), (1, 'darkgreen')],
                      color_continuous_midpoint=0,  # Punto medio de la escala en 0%
                      range_color=[-range_colors, range_colors],  # Ajusta según el rango de rendimiento esperado
-                     title=f"Panel general: {value_metric} y Rendimiento ({'diario' if period == '1d' else 'semanal' if period == '1wk' else 'mensual' if period == '1mo' else 'anual'})")
+                     title=f"Panel general: {value_metric} y Rendimiento ({period_labels.get(period, 'desconocido')})")
 
     # Ajustar el tamaño del gráfico
     fig.update_layout(width=1500, height=800)  # Puedes ajustar estos valores según sea necesario
