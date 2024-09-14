@@ -121,7 +121,7 @@ if not resultados.empty:
                      title=f"Panel general: {value_metric} y Rendimiento ({period})")
 
     # Ajustar el tamaño del gráfico
-    fig.update_layout(width=1500, height=800)  # Puedes ajustar estos valores según sea necesario
+    fig.update_layout(width=2500, height=800)  # Puedes ajustar estos valores según sea necesario
 
     # Personalizar la información en las etiquetas
     fig.update_traces(textinfo="label+text+value",
