@@ -58,11 +58,11 @@ elif panel_option == 'Panel Líder':
     tickers = tickers_panel_lider
     panel_name = 'Panel Líder'
 else:
-    # Obtener datos para ambos paneles sin eliminar duplicados
+    # Obtener datos para ambos paneles
     data_general = get_last_data(tickers_panel_general, '5d', 'Panel General').copy()
     data_lider = get_last_data(tickers_panel_lider, '5d', 'Panel Líder').copy()
     
-    # Concatenar los DataFrames pero no eliminar duplicados
+    # Concatenar los DataFrames y mantener el índice único para evitar errores
     resultados = pd.concat([data_general, data_lider], ignore_index=True)
     panel_name = 'Todos'
 
@@ -113,7 +113,8 @@ else:
 
     # Actualizar las etiquetas para que coincidan con el DataFrame
     fig.update_traces(textinfo="label+text+value",
-                      text=resultados['Etiqueta'])  # Usar la columna 'Etiqueta'
+                      customdata=resultados['Etiqueta'],
+                      texttemplate="%{customdata}")
 
     # Ajustar el tamaño del gráfico
     fig.update_layout(width=2000, height=800)
@@ -123,5 +124,4 @@ else:
 
 # Mostrar el DataFrame final al final
 st.write("Datos finales:", resultados)
-
 
