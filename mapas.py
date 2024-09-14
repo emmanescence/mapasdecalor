@@ -94,9 +94,6 @@ else:
     # Mostrar el DataFrame final antes de graficar para depuración
     st.write("Datos a graficar:", resultados)
 
-    # Crear las etiquetas manualmente para cada ticker
-    etiquetas = resultados.apply(lambda row: f"{row['Ticker']}: {row['Rendimiento Diario']:.2f}%", axis=1)
-
     # Crear el gráfico de treemap
     fig = px.treemap(resultados,
                      path=['Panel', 'Ticker'],  # Agregar 'Panel' para mantener la unicidad
@@ -108,7 +105,9 @@ else:
                      title="Panel general: Volumen Operado y Rendimiento Diario",
                      labels={'Rendimiento Diario': 'Rendimiento'})
 
-    # Actualizar las etiquetas para que coincidan con el DataFrame
+    # Asignar etiquetas directamente
+    etiquetas = resultados.apply(lambda row: f"{row['Ticker']}: {row['Rendimiento Diario']:.2f}%", axis=1)
+    
     fig.update_traces(
         text=etiquetas,  # Usar la lista de etiquetas generada manualmente
         textinfo="label+text"
